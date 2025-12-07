@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SelfProxy VPN</string>
+    
+    <!-- Connection States -->
+    <string name="connection_state_disconnected">Disconnected</string>
+    <string name="connection_state_connecting">Connecting…</string>
+    <string name="connection_state_connected">Connected</string>
+    <string name="connection_state_reconnecting">Reconnecting…</string>
+    <string name="connection_state_error">Connection Error</string>
+    
+    <!-- Protocols -->
+    <string name="protocol_wireguard">WireGuard</string>
+    <string name="protocol_vless">VLESS</string>
+    
+    <!-- Actions -->
+    <string name="action_connect">Connect</string>
+    <string name="action_disconnect">Disconnect</string>
+    <string name="action_add_profile">Add Profile</string>
+    <string name="action_edit_profile">Edit Profile</string>
+    <string name="action_delete_profile">Delete Profile</string>
+    <string name="action_test_connection">Test Connection</string>
+    
+    <!-- Notifications -->
+    <string name="notification_vpn_active">VPN Active</string>
+    <string name="notification_vpn_connected">Connected to %1$s</string>
+    <string name="notification_vpn_disconnected">VPN Disconnected</string>
+    
+    <!-- Permissions -->
+    <string name="permission_vpn_required">VPN permission is required to establish secure tunnel</string>
+    <string name="permission_battery_optimization">Battery optimization exemption recommended for reliable connection</string>
+    
+    <!-- Errors -->
+    <string name="error_connection_failed">Connection failed</string>
+    <string name="error_authentication_failed">Authentication failed</string>
+    <string name="error_server_unreachable">Server unreachable</string>
+    <string name="error_invalid_configuration">Invalid configuration</string>
+    <string name="error_timeout">Connection timeout</string>
+</resources>
