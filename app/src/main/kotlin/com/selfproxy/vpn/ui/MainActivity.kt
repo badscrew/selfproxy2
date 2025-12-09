@@ -38,6 +38,12 @@ class MainActivity : ComponentActivity() {
     // Activity result launcher for VPN permission
     private lateinit var vpnPermissionLauncher: ActivityResultLauncher<Intent>
     
+    // Activity result launcher for battery optimization
+    private lateinit var batteryOptimizationLauncher: ActivityResultLauncher<Intent>
+    
+    // ViewModel for settings management
+    private val settingsViewModel: com.selfproxy.vpn.ui.viewmodel.SettingsViewModel by viewModel()
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
@@ -52,6 +58,15 @@ class MainActivity : ComponentActivity() {
                 // Permission denied - notify user
                 connectionViewModel.onVpnPermissionDenied()
             }
+        }
+        
+        // Register battery optimization launcher
+        batteryOptimizationLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { _ ->
+            // Result doesn't matter - user has seen the dialog
+            // Refresh status when user returns
+            settingsViewModel.refreshBatteryOptimizationStatus()
         }
         
         // Set the permission launcher in the view model
@@ -92,6 +107,20 @@ class MainActivity : ComponentActivity() {
             true
         }
     }
+    
+    /**
+     * Requests battery optimization exemption from the user.
+     * 
+     * Launches the system settings to allow the user to disable battery optimization
+     * for this app, which helps maintain VPN connection during doze mode.
+     * 
+     * Requirement 11.2: Request battery optimization exemption
+     */
+    fun requestBatteryOptimizationExemption(intent: Intent?) {
+        intent?.let {
+            batteryOptimizationLauncher.launch(it)
+        }
+    }
 }
 
 @Composable
@@ -115,6 +144,8 @@ fun ProfileManagementApp(
     val settings by settingsViewModel.settings.collectAsState()
     val validationErrors by settingsViewModel.validationErrors.collectAsState()
     val saveSuccess by settingsViewModel.saveSuccess.collectAsState()
+    val batteryOptimizationExempted by settingsViewModel.batteryOptimizationExempted.collectAsState()
+    val batteryState by settingsViewModel.batteryState.collectAsState()
     
     val filteredApps by appRoutingViewModel.filteredApps.collectAsState()
     val routingConfig by appRoutingViewModel.config.collectAsState()
@@ -240,6 +271,9 @@ fun ProfileManagementApp(
                 settings = settings,
                 validationErrors = validationErrors,
                 saveSuccess = saveSuccess,
+                batteryOptimizationExempted = batteryOptimizationExempted,
+                batteryState = batteryState,
+                batteryOptimizationMessage = settingsViewModel.getBatteryOptimizationMessage(),
                 onUpdateSettings = { newSettings ->
                     settingsViewModel.updateSettings { newSettings }
                 },
@@ -258,6 +292,12 @@ fun ProfileManagementApp(
                 onOpenAppRouting = {
                     appRoutingViewModel.loadConfig(null)
                     currentScreen = Screen.AppRouting
+                },
+                onRequestBatteryOptimization = {
+                    // Request battery optimization exemption
+                    val batteryOptManager = settingsViewModel.getBatteryOptimizationManager()
+                    val intent = batteryOptManager?.createBatteryOptimizationExemptionIntent()
+                    (context as? MainActivity)?.requestBatteryOptimizationExemption(intent)
                 }
             )
         }

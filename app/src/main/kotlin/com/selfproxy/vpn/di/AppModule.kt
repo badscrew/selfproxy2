@@ -137,12 +137,12 @@ val appModule = module {
     
     /**
      * Connection manager for VPN connections.
-     * Requirements: 3.3, 3.6, 3.7
+     * Requirements: 3.3, 3.6, 3.7, 11.1, 11.3, 11.5
      * 
      * Note: Uses setter injection for AutoReconnectService to avoid circular dependency.
      */
     single { 
-        ConnectionManager(get(), get(), get()).apply {
+        ConnectionManager(get(), get(), get(), get()).apply {
             // Set auto-reconnect service after creation to avoid circular dependency
             setAutoReconnectService(get())
         }
@@ -153,6 +153,18 @@ val appModule = module {
      * Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.8, 6.9, 6.10
      */
     single { AutoReconnectService(androidContext(), get()) }
+    
+    /**
+     * Battery optimization manager for power management.
+     * Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.7
+     */
+    single { com.selfproxy.vpn.domain.manager.BatteryOptimizationManager(androidContext()) }
+    
+    /**
+     * Battery monitor for tracking battery state changes.
+     * Requirements: 11.5, 11.6
+     */
+    single { com.selfproxy.vpn.domain.manager.BatteryMonitor(androidContext()) }
     
     // ========================================
     // ViewModels
@@ -172,9 +184,9 @@ val appModule = module {
     
     /**
      * Settings screen ViewModel.
-     * Requirements: 14.1, 14.2, 14.3, 14.4, 14.5
+     * Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 11.2, 11.5
      */
-    viewModel { SettingsViewModel(get()) }
+    viewModel { SettingsViewModel(get(), get(), get()) }
     
     /**
      * App routing screen ViewModel.

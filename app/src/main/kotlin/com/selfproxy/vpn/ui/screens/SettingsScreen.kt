@@ -20,9 +20,9 @@ import com.selfproxy.vpn.data.model.TransportProtocol
  * Settings screen for configuring application preferences.
  * 
  * Allows users to configure DNS, IPv6, MTU, connection settings,
- * protocol-specific settings, and logging options.
+ * protocol-specific settings, battery optimization, and logging options.
  * 
- * Requirements: 14.1, 14.2, 14.3, 14.4, 14.5
+ * Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 11.2, 11.5, 11.6
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,12 +30,16 @@ fun SettingsScreen(
     settings: AppSettings,
     validationErrors: List<String>,
     saveSuccess: Boolean,
+    batteryOptimizationExempted: Boolean = false,
+    batteryState: com.selfproxy.vpn.domain.manager.BatteryState = com.selfproxy.vpn.domain.manager.BatteryState(),
+    batteryOptimizationMessage: String = "",
     onUpdateSettings: (AppSettings) -> Unit,
     onSaveSettings: () -> Unit,
     onResetToDefaults: () -> Unit,
     onClearSaveSuccess: () -> Unit,
     onNavigateBack: () -> Unit,
-    onOpenAppRouting: () -> Unit = {}
+    onOpenAppRouting: () -> Unit = {},
+    onRequestBatteryOptimization: () -> Unit = {}
 ) {
     var showResetDialog by remember { mutableStateOf(false) }
     
@@ -278,6 +282,153 @@ fun SettingsScreen(
                         onUpdateSettings(settings.copy(vlessDefaultFlowControl = value))
                     },
                     displayName = { it.name }
+                )
+            }
+            
+            // Battery Optimization Section
+            SettingsSection(title = "Battery Optimization") {
+                // Battery optimization status
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (batteryOptimizationExempted) {
+                            MaterialTheme.colorScheme.primaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.secondaryContainer
+                        }
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = if (batteryOptimizationExempted) {
+                                "✓ Battery Optimization Disabled"
+                            } else {
+                                "⚠ Battery Optimization Enabled"
+                            },
+                            style = MaterialTheme.typography.titleSmall,
+                            color = if (batteryOptimizationExempted) {
+                                MaterialTheme.colorScheme.onPrimaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.onSecondaryContainer
+                            }
+                        )
+                        
+                        Text(
+                            text = batteryOptimizationMessage,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (batteryOptimizationExempted) {
+                                MaterialTheme.colorScheme.onPrimaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.onSecondaryContainer
+                            }
+                        )
+                        
+                        if (!batteryOptimizationExempted) {
+                            Button(
+                                onClick = onRequestBatteryOptimization,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("Disable Battery Optimization")
+                            }
+                        }
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                // Battery state information
+                Card(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "Battery Status",
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                        
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "Battery Level:",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                text = "${batteryState.level}%",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = when {
+                                    batteryState.isCriticalBattery -> MaterialTheme.colorScheme.error
+                                    batteryState.isLowBattery -> MaterialTheme.colorScheme.tertiary
+                                    else -> MaterialTheme.colorScheme.onSurface
+                                }
+                            )
+                        }
+                        
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "Charging:",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                text = if (batteryState.isCharging) "Yes" else "No",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                        
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "Battery Saver:",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                text = if (batteryState.isBatterySaverMode) "Active" else "Inactive",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = if (batteryState.isBatterySaverMode) {
+                                    MaterialTheme.colorScheme.tertiary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurface
+                                }
+                            )
+                        }
+                        
+                        if (batteryState.isDozeMode) {
+                            Text(
+                                text = "⚠ Device is in Doze mode",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.tertiary
+                            )
+                        }
+                        
+                        if (batteryState.isCriticalBattery) {
+                            Text(
+                                text = "⚠ Critical battery level - VPN may disconnect to save power",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                Text(
+                    text = "Battery optimization settings help maintain VPN connection during doze mode. " +
+                            "Keep-alive intervals are automatically adjusted based on battery level and power save mode.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             

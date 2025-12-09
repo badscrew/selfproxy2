@@ -15,10 +15,12 @@ import kotlinx.coroutines.launch
  * 
  * Manages application settings and user preferences.
  * 
- * Requirements: 14.1, 14.2, 14.3, 14.4, 14.5
+ * Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 11.2, 11.5
  */
 class SettingsViewModel(
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val batteryOptimizationManager: com.selfproxy.vpn.domain.manager.BatteryOptimizationManager? = null,
+    private val batteryMonitor: com.selfproxy.vpn.domain.manager.BatteryMonitor? = null
 ) : ViewModel() {
     
     // Current settings
@@ -33,11 +35,43 @@ class SettingsViewModel(
     private val _saveSuccess = MutableStateFlow(false)
     val saveSuccess: StateFlow<Boolean> = _saveSuccess.asStateFlow()
     
+    // Battery optimization state
+    private val _batteryOptimizationExempted = MutableStateFlow(false)
+    val batteryOptimizationExempted: StateFlow<Boolean> = _batteryOptimizationExempted.asStateFlow()
+    
+    // Battery state
+    private val _batteryState = MutableStateFlow(com.selfproxy.vpn.domain.manager.BatteryState())
+    val batteryState: StateFlow<com.selfproxy.vpn.domain.manager.BatteryState> = _batteryState.asStateFlow()
+    
     init {
         // Load settings on initialization
         viewModelScope.launch {
             settingsRepository.observeSettings().collect { loadedSettings ->
                 _settings.value = loadedSettings
+            }
+        }
+        
+        // Monitor battery optimization status
+        batteryOptimizationManager?.let { manager ->
+            _batteryOptimizationExempted.value = manager.isIgnoringBatteryOptimizations()
+            
+            // Observe battery state
+            viewModelScope.launch {
+                manager.batteryState.collect { state ->
+                    _batteryState.value = state
+                }
+            }
+        }
+        
+        // Monitor battery changes
+        batteryMonitor?.let { monitor ->
+            viewModelScope.launch {
+                monitor.observeBatteryState().collect { batteryInfo ->
+                    batteryOptimizationManager?.updateBatteryState(
+                        batteryInfo.level,
+                        batteryInfo.isCharging
+                    )
+                }
             }
         }
     }
@@ -95,5 +129,44 @@ class SettingsViewModel(
      */
     fun clearValidationErrors() {
         _validationErrors.value = emptyList()
+    }
+    
+    /**
+     * Checks if battery optimization exemption should be requested.
+     * 
+     * Requirement 11.2: Request battery optimization exemption
+     * 
+     * @return true if exemption should be requested
+     */
+    fun shouldRequestBatteryOptimization(): Boolean {
+        return batteryOptimizationManager?.shouldPromptForBatteryOptimization() ?: false
+    }
+    
+    /**
+     * Gets the battery optimization message for display.
+     * 
+     * @return User-friendly message about battery optimization
+     */
+    fun getBatteryOptimizationMessage(): String {
+        return batteryOptimizationManager?.getBatteryOptimizationMessage()
+            ?: "Battery optimization information not available"
+    }
+    
+    /**
+     * Refreshes the battery optimization status.
+     */
+    fun refreshBatteryOptimizationStatus() {
+        batteryOptimizationManager?.let { manager ->
+            _batteryOptimizationExempted.value = manager.isIgnoringBatteryOptimizations()
+        }
+    }
+    
+    /**
+     * Gets the battery optimization manager for external use.
+     * 
+     * @return Battery optimization manager instance
+     */
+    fun getBatteryOptimizationManager(): com.selfproxy.vpn.domain.manager.BatteryOptimizationManager? {
+        return batteryOptimizationManager
     }
 }

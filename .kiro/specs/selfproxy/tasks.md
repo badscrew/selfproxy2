@@ -311,7 +311,7 @@
   - Show permission rationale to user
   - _Requirements: 3.4_
 
-- [ ] 24. Implement Battery Optimization
+- [-] 24. Implement Battery Optimization
   - Request battery optimization exemption
   - Configure efficient keep-alive intervals
   - Implement doze mode handling

@@ -23,13 +23,15 @@ import kotlinx.coroutines.launch
  * - Connection state management
  * - Error handling and error message generation
  * - Integration with auto-reconnect service
+ * - Battery optimization integration
  * 
- * Requirements: 3.3, 3.6, 3.7
+ * Requirements: 3.3, 3.6, 3.7, 11.1, 11.3, 11.5
  */
 class ConnectionManager(
     private val wireGuardAdapter: ProtocolAdapter,
     private val vlessAdapter: ProtocolAdapter,
     private val profileRepository: ProfileRepository,
+    private val batteryOptimizationManager: BatteryOptimizationManager? = null,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Main
 ) {
     private val scope = CoroutineScope(SupervisorJob() + dispatcher)
@@ -172,6 +174,28 @@ class ConnectionManager(
         } else {
             null
         }
+    }
+    
+    /**
+     * Gets the recommended keep-alive interval based on battery state.
+     * 
+     * Requirements:
+     * - 11.1: Configurable keep-alive intervals
+     * - 11.3: Efficient polling intervals
+     * - 11.5: Adjust intervals in battery saver mode
+     * 
+     * @param batteryLevel Current battery level (0-100)
+     * @param isNatTraversal Whether NAT traversal is needed
+     * @return Recommended keep-alive interval in seconds
+     */
+    fun getRecommendedKeepAliveInterval(
+        batteryLevel: Int,
+        isNatTraversal: Boolean = true
+    ): Int {
+        return batteryOptimizationManager?.getRecommendedKeepAliveInterval(
+            batteryLevel,
+            isNatTraversal
+        ) ?: BatteryOptimizationManager.KEEPALIVE_NORMAL
     }
     
     /**
