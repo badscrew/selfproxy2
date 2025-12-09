@@ -34,7 +34,8 @@ fun SettingsScreen(
     onSaveSettings: () -> Unit,
     onResetToDefaults: () -> Unit,
     onClearSaveSuccess: () -> Unit,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onOpenAppRouting: () -> Unit = {}
 ) {
     var showResetDialog by remember { mutableStateOf(false) }
     
@@ -170,6 +171,21 @@ fun SettingsScreen(
                         onUpdateSettings(settings.copy(mtu = value))
                     },
                     range = 1280..1500
+                )
+            }
+            
+            // App Routing Section
+            SettingsSection(title = "App Routing") {
+                Button(
+                    onClick = onOpenAppRouting,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Configure Per-App Routing")
+                }
+                Text(
+                    text = "Choose which apps use the VPN tunnel",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             

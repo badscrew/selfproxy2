@@ -23,10 +23,12 @@ val appModule = module {
     // Database
     single { AppDatabase.getInstance(androidContext()) }
     single { get<AppDatabase>().profileDao() }
+    single { get<AppDatabase>().appRoutingDao() }
     
     // Repositories
     single<ProfileRepository> { ProfileRepositoryImpl(get()) }
     single { SettingsRepository(androidContext()) }
+    single { com.selfproxy.vpn.data.repository.AppRoutingRepository(androidContext(), get()) }
     
     // Security
     single<com.selfproxy.vpn.domain.repository.CredentialStore> { 
@@ -50,4 +52,5 @@ val appModule = module {
     viewModel { ProfileViewModel(get()) }
     viewModel { ConnectionViewModel(get(), get(), get()) }
     viewModel { SettingsViewModel(get()) }
+    viewModel { com.selfproxy.vpn.ui.viewmodel.AppRoutingViewModel(get()) }
 }

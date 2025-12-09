@@ -39,7 +39,8 @@ class MainActivity : ComponentActivity() {
 fun ProfileManagementApp(
     profileViewModel: ProfileViewModel = koinViewModel(),
     connectionViewModel: com.selfproxy.vpn.ui.viewmodel.ConnectionViewModel = koinViewModel(),
-    settingsViewModel: com.selfproxy.vpn.ui.viewmodel.SettingsViewModel = koinViewModel()
+    settingsViewModel: com.selfproxy.vpn.ui.viewmodel.SettingsViewModel = koinViewModel(),
+    appRoutingViewModel: com.selfproxy.vpn.ui.viewmodel.AppRoutingViewModel = koinViewModel()
 ) {
     val profiles by profileViewModel.filteredProfiles.collectAsState()
     val connectionState by connectionViewModel.connectionState.collectAsState()
@@ -52,10 +53,17 @@ fun ProfileManagementApp(
     val validationErrors by settingsViewModel.validationErrors.collectAsState()
     val saveSuccess by settingsViewModel.saveSuccess.collectAsState()
     
+    val filteredApps by appRoutingViewModel.filteredApps.collectAsState()
+    val routingConfig by appRoutingViewModel.config.collectAsState()
+    val searchQuery by appRoutingViewModel.searchQuery.collectAsState()
+    val includeSystemApps by appRoutingViewModel.includeSystemApps.collectAsState()
+    val isLoadingApps by appRoutingViewModel.isLoading.collectAsState()
+    val routingSaveSuccess by appRoutingViewModel.saveSuccess.collectAsState()
+    
     var currentScreen by remember { mutableStateOf<Screen>(Screen.Connection) }
     var profileToEdit by remember { mutableStateOf<ServerProfile?>(null) }
     
-    when (val screen = currentScreen) {
+    when (currentScreen) {
         is Screen.Connection -> {
             com.selfproxy.vpn.ui.screens.ConnectionScreen(
                 connectionState = connectionState,
@@ -140,6 +148,50 @@ fun ProfileManagementApp(
                 },
                 onNavigateBack = {
                     currentScreen = Screen.Connection
+                },
+                onOpenAppRouting = {
+                    appRoutingViewModel.loadConfig(null)
+                    currentScreen = Screen.AppRouting
+                }
+            )
+        }
+        is Screen.AppRouting -> {
+            com.selfproxy.vpn.ui.screens.AppRoutingScreen(
+                apps = filteredApps,
+                config = routingConfig,
+                searchQuery = searchQuery,
+                includeSystemApps = includeSystemApps,
+                isLoading = isLoadingApps,
+                saveSuccess = routingSaveSuccess,
+                onSearchQueryChange = { query ->
+                    appRoutingViewModel.updateSearchQuery(query)
+                },
+                onToggleRoutingMode = {
+                    appRoutingViewModel.toggleRoutingMode()
+                },
+                onToggleAppSelection = { app ->
+                    appRoutingViewModel.toggleAppSelection(app)
+                },
+                onSelectAll = {
+                    appRoutingViewModel.selectAll()
+                },
+                onDeselectAll = {
+                    appRoutingViewModel.deselectAll()
+                },
+                onToggleSystemApps = {
+                    appRoutingViewModel.toggleIncludeSystemApps()
+                },
+                onSave = {
+                    appRoutingViewModel.saveConfig()
+                },
+                onClearSaveSuccess = {
+                    appRoutingViewModel.clearSaveSuccess()
+                },
+                onNavigateBack = {
+                    currentScreen = Screen.Settings
+                },
+                getAppIcon = { packageName ->
+                    appRoutingViewModel.getAppIcon(packageName)
                 }
             )
         }
@@ -151,4 +203,5 @@ sealed class Screen {
     object ProfileList : Screen()
     object ProfileForm : Screen()
     object Settings : Screen()
+    object AppRouting : Screen()
 }

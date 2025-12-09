@@ -280,7 +280,7 @@
   - Add logging options
   - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5_
 
-- [ ] 20. Create App Routing Screen UI
+- [x] 20. Create App Routing Screen UI
   - Design app list screen with Compose
   - Display installed apps with icons
   - Add app selection checkboxes
