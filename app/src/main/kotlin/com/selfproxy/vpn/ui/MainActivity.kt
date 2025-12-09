@@ -196,6 +196,12 @@ fun ProfileManagementApp(
                 profileToEdit = null
                 currentScreen = Screen.ProfileForm
             },
+            onImportConfig = { configText ->
+                hasSeenWelcome = true
+                // Import the configuration and create a profile
+                profileViewModel.importConfiguration(configText)
+                currentScreen = Screen.ProfileList
+            },
             onSkip = {
                 hasSeenWelcome = true
             }

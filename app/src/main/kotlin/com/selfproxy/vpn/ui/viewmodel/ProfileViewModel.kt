@@ -137,6 +137,25 @@ class ProfileViewModel(
             emit(profileRepository.searchProfiles(query))
         }
     }
+    
+    /**
+     * Imports a configuration from text (QR code, URI, or config file).
+     * Automatically detects the protocol and creates a profile.
+     */
+    fun importConfiguration(configText: String) {
+        viewModelScope.launch {
+            _uiState.value = ProfileUiState.Loading
+            profileRepository.importConfiguration(configText)
+                .onSuccess { profile ->
+                    _uiState.value = ProfileUiState.Success("Configuration imported successfully")
+                }
+                .onFailure { error ->
+                    _uiState.value = ProfileUiState.Error(
+                        error.message ?: "Failed to import configuration"
+                    )
+                }
+        }
+    }
 }
 
 /**

@@ -343,7 +343,7 @@
   - Provide protocol documentation links
   - _Requirements: 17.1, 17.2, 17.3, 17.8, 17.9, 17.10_
 
-- [ ] 28. Add Welcome Screen
+- [x] 28. Add Welcome Screen
   - Design first-run welcome screen
   - Add quick setup wizard for WireGuard
   - Add quick setup wizard for VLESS

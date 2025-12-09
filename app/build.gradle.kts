@@ -116,6 +116,15 @@ dependencies {
     // Networking
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
+    // QR Code Scanning
+    implementation("com.google.mlkit:barcode-scanning:17.2.0")
+    
+    // Camera for QR scanning
+    val cameraxVersion = "1.3.1"
+    implementation("androidx.camera:camera-camera2:$cameraxVersion")
+    implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
+    implementation("androidx.camera:camera-view:$cameraxVersion")
+
     // Dependency Injection - Koin
     val koinVersion = "3.5.3"
     implementation("io.insert-koin:koin-android:$koinVersion")

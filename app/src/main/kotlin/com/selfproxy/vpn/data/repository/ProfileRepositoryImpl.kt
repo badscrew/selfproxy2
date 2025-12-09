@@ -184,6 +184,76 @@ class ProfileRepositoryImpl(
             Result.failure(ProfileValidationException("Profile validation failed: ${e.message}", e))
         }
     }
+    
+    override suspend fun importConfiguration(configText: String): Result<ServerProfile> {
+        return try {
+            // Use ConfigurationImporter to parse the configuration
+            val importResult = com.selfproxy.vpn.data.config.ConfigurationImporter.import(configText)
+            
+            importResult.fold(
+                onSuccess = { importedConfig ->
+                    // Create a profile from the imported configuration
+                    val profile = when (importedConfig.protocol) {
+                        Protocol.WIREGUARD -> {
+                            val wgConfig = importedConfig.wireGuardConfig!!
+                            ServerProfile(
+                                id = 0,
+                                name = wgConfig.name,
+                                protocol = Protocol.WIREGUARD,
+                                hostname = wgConfig.hostname,
+                                port = wgConfig.port,
+                                wireGuardConfigJson = kotlinx.serialization.json.Json.encodeToString(
+                                    com.selfproxy.vpn.data.model.WireGuardConfig.serializer(),
+                                    wgConfig.config
+                                ),
+                                vlessConfigJson = null,
+                                createdAt = System.currentTimeMillis(),
+                                lastUsed = null
+                            )
+                        }
+                        Protocol.VLESS -> {
+                            val vlessConfig = importedConfig.vlessConfig!!
+                            ServerProfile(
+                                id = 0,
+                                name = vlessConfig.name,
+                                protocol = Protocol.VLESS,
+                                hostname = vlessConfig.hostname,
+                                port = vlessConfig.port,
+                                wireGuardConfigJson = null,
+                                vlessConfigJson = kotlinx.serialization.json.Json.encodeToString(
+                                    com.selfproxy.vpn.data.model.VlessConfig.serializer(),
+                                    vlessConfig.config
+                                ),
+                                createdAt = System.currentTimeMillis(),
+                                lastUsed = null
+                            )
+                        }
+                    }
+                    
+                    // Create the profile in the database
+                    createProfile(profile).fold(
+                        onSuccess = { id ->
+                            Result.success(profile.copy(id = id))
+                        },
+                        onFailure = { error ->
+                            Result.failure(error)
+                        }
+                    )
+                },
+                onFailure = { error ->
+                    Result.failure(ConfigurationImportException(
+                        "Failed to import configuration: ${error.message}",
+                        error
+                    ))
+                }
+            )
+        } catch (e: Exception) {
+            Result.failure(ConfigurationImportException(
+                "Failed to import configuration: ${e.message}",
+                e
+            ))
+        }
+    }
 }
 
 /**
@@ -222,6 +292,14 @@ class ProfileDeletionException(
  * Exception thrown when a profile is not found.
  */
 class ProfileNotFoundException(
+    message: String,
+    cause: Throwable? = null
+) : Exception(message, cause)
+
+/**
+ * Exception thrown when configuration import fails.
+ */
+class ConfigurationImportException(
     message: String,
     cause: Throwable? = null
 ) : Exception(message, cause)

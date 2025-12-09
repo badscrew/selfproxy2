@@ -124,4 +124,17 @@ interface ProfileRepository {
      * @return Result indicating success or validation error
      */
     fun validateProfile(profile: ServerProfile): Result<Unit>
+    
+    /**
+     * Imports a configuration from text (QR code, URI, or config file).
+     * 
+     * Automatically detects the protocol and creates a profile.
+     * Supports:
+     * - WireGuard INI format
+     * - VLESS URI format (vless://)
+     * 
+     * @param configText The configuration text to import
+     * @return Result containing the created profile, or an error
+     */
+    suspend fun importConfiguration(configText: String): Result<ServerProfile>
 }

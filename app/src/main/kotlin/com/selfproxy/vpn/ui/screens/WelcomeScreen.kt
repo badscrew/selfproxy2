@@ -5,6 +5,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.QrCodeScanner
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -14,6 +15,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.selfproxy.vpn.domain.model.Protocol
 import com.selfproxy.vpn.ui.components.ProtocolRecommendationsDialog
+import com.selfproxy.vpn.ui.components.QrCodeScanner
 
 /**
  * Welcome screen shown to first-time users.
@@ -27,10 +29,12 @@ import com.selfproxy.vpn.ui.components.ProtocolRecommendationsDialog
 @Composable
 fun WelcomeScreen(
     onCreateProfile: (Protocol) -> Unit,
+    onImportConfig: (String) -> Unit,
     onSkip: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showProtocolRecommendations by remember { mutableStateOf(false) }
+    var showQrScanner by remember { mutableStateOf(false) }
     
     if (showProtocolRecommendations) {
         ProtocolRecommendationsDialog(
@@ -39,6 +43,16 @@ fun WelcomeScreen(
                 showProtocolRecommendations = false
                 onCreateProfile(protocol)
             }
+        )
+    }
+    
+    if (showQrScanner) {
+        QrCodeScanner(
+            onQrCodeScanned = { qrCode ->
+                showQrScanner = false
+                onImportConfig(qrCode)
+            },
+            onDismiss = { showQrScanner = false }
         )
     }
     
@@ -224,6 +238,49 @@ fun WelcomeScreen(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text("Help me choose the right protocol")
+                    }
+                }
+            }
+            
+            // QR Code Import
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        text = "Quick Import",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    
+                    Text(
+                        text = "Already have a WireGuard configuration?",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer
+                    )
+                    
+                    Button(
+                        onClick = { showQrScanner = true },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.tertiary
+                        )
+                    ) {
+                        Icon(
+                            Icons.Outlined.QrCodeScanner,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Scan QR Code")
                     }
                 }
             }
