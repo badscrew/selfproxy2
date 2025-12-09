@@ -391,7 +391,7 @@
   - Generate client configurations
   - _Requirements: 10.1-10.19_
 
-- [ ] 33. Write Documentation
+- [x] 33. Write Documentation
   - Create README with app overview
   - Write WireGuard setup guide
   - Write VLESS setup guide
