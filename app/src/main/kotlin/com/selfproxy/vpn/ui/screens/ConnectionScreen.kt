@@ -27,7 +27,7 @@ import kotlin.time.Duration.Companion.milliseconds
 /**
  * Main connection screen showing VPN status and controls.
  * 
- * Requirements: 3.5, 7.1, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9
+ * Requirements: 3.4, 3.5, 7.1, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,7 +44,13 @@ fun ConnectionScreen(
     onClearTestResult: () -> Unit,
     onSelectProfile: () -> Unit,
     onOpenSettings: () -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    // VPN permission handling
+    showPermissionRationale: Boolean = false,
+    onDismissPermissionRationale: () -> Unit = {},
+    onProceedWithPermission: () -> Unit = {},
+    vpnPermissionDenied: Boolean = false,
+    onDismissPermissionDenied: () -> Unit = {}
 ) {
     Scaffold(
         topBar = {
@@ -114,6 +120,21 @@ fun ConnectionScreen(
             if (connectionState is ConnectionState.Error) {
                 ErrorCard(error = connectionState.error)
             }
+        }
+        
+        // VPN Permission Rationale Dialog
+        if (showPermissionRationale) {
+            VpnPermissionRationaleDialog(
+                onDismiss = onDismissPermissionRationale,
+                onProceed = onProceedWithPermission
+            )
+        }
+        
+        // VPN Permission Denied Dialog
+        if (vpnPermissionDenied) {
+            VpnPermissionDeniedDialog(
+                onDismiss = onDismissPermissionDenied
+            )
         }
     }
 }
@@ -655,4 +676,132 @@ private fun formatTimeSince(timestamp: Long): String {
         seconds < 3600 -> "${seconds / 60} minutes ago"
         else -> "${seconds / 3600} hours ago"
     }
+}
+
+/**
+ * Dialog explaining why VPN permission is needed.
+ * 
+ * Requirement 3.4: Show permission rationale to user
+ */
+@Composable
+private fun VpnPermissionRationaleDialog(
+    onDismiss: () -> Unit,
+    onProceed: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = {
+            Icon(
+                imageVector = Icons.Default.VpnKey,
+                contentDescription = null,
+                modifier = Modifier.size(48.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+        },
+        title = {
+            Text(
+                text = "VPN Permission Required",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    text = "SelfProxy needs VPN permission to route your device's internet traffic through your own VPN server.",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Text(
+                    text = "This permission allows the app to:",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium
+                )
+                Column(
+                    modifier = Modifier.padding(start = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "• Create a secure VPN tunnel to your server",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        text = "• Route all traffic through the encrypted tunnel",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        text = "• Protect your privacy and data",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+                Text(
+                    text = "Your data is never collected or shared. You maintain full control over your VPN server.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = onProceed) {
+                Text("Grant Permission")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+/**
+ * Dialog shown when VPN permission is denied.
+ * 
+ * Requirement 3.4: Handle permission denial
+ */
+@Composable
+private fun VpnPermissionDeniedDialog(
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = {
+            Icon(
+                imageVector = Icons.Default.Error,
+                contentDescription = null,
+                modifier = Modifier.size(48.dp),
+                tint = ErrorRed
+            )
+        },
+        title = {
+            Text(
+                text = "Permission Denied",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    text = "VPN permission is required to establish a secure connection to your server.",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Text(
+                    text = "Without this permission, the app cannot create a VPN tunnel or route your traffic.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = "To use SelfProxy, please grant VPN permission when prompted.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = onDismiss) {
+                Text("OK")
+            }
+        }
+    )
 }

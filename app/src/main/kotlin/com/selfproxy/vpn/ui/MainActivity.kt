@@ -1,27 +1,64 @@
 package com.selfproxy.vpn.ui
 
+import android.content.Intent
+import android.net.VpnService
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import com.selfproxy.vpn.data.model.ServerProfile
 import com.selfproxy.vpn.ui.screens.ProfileFormScreen
 import com.selfproxy.vpn.ui.screens.ProfileListScreen
 import com.selfproxy.vpn.ui.theme.SelfProxyTheme
 import com.selfproxy.vpn.ui.viewmodel.ProfileViewModel
+import com.selfproxy.vpn.ui.viewmodel.ConnectionViewModel
 import org.koin.androidx.compose.koinViewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 /**
  * Main activity for the SelfProxy VPN application.
  * Entry point for the UI.
+ * 
+ * Handles VPN permission requests as required by Android's VpnService API.
+ * 
+ * Requirements: 3.4 - VPN permission handling
  */
 class MainActivity : ComponentActivity() {
+    
+    // ViewModel for connection management
+    private val connectionViewModel: ConnectionViewModel by viewModel()
+    
+    // Activity result launcher for VPN permission
+    private lateinit var vpnPermissionLauncher: ActivityResultLauncher<Intent>
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Register VPN permission launcher
+        vpnPermissionLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            if (result.resultCode == RESULT_OK) {
+                // Permission granted - proceed with connection
+                connectionViewModel.onVpnPermissionGranted()
+            } else {
+                // Permission denied - notify user
+                connectionViewModel.onVpnPermissionDenied()
+            }
+        }
+        
+        // Set the permission launcher in the view model
+        connectionViewModel.setVpnPermissionLauncher { intent ->
+            vpnPermissionLauncher.launch(intent)
+        }
+        
         setContent {
             SelfProxyTheme {
                 Surface(
@@ -31,6 +68,28 @@ class MainActivity : ComponentActivity() {
                     ProfileManagementApp()
                 }
             }
+        }
+    }
+    
+    /**
+     * Requests VPN permission from the user.
+     * 
+     * This method checks if VPN permission is already granted.
+     * If not, it launches the system VPN permission dialog.
+     * 
+     * Requirement 3.4: Request VPN permission using VpnService.prepare()
+     * 
+     * @return true if permission is already granted, false if permission dialog was shown
+     */
+    fun requestVpnPermission(): Boolean {
+        val intent = VpnService.prepare(this)
+        return if (intent != null) {
+            // Permission not granted - show permission dialog
+            vpnPermissionLauncher.launch(intent)
+            false
+        } else {
+            // Permission already granted
+            true
         }
     }
 }
@@ -49,6 +108,10 @@ fun ProfileManagementApp(
     val testResult by connectionViewModel.testResult.collectAsState()
     val isTesting by connectionViewModel.isTesting.collectAsState()
     
+    // VPN permission state
+    val vpnPermissionState by connectionViewModel.vpnPermissionState.collectAsState()
+    val showPermissionRationale by connectionViewModel.showPermissionRationale.collectAsState()
+    
     val settings by settingsViewModel.settings.collectAsState()
     val validationErrors by settingsViewModel.validationErrors.collectAsState()
     val saveSuccess by settingsViewModel.saveSuccess.collectAsState()
@@ -62,6 +125,28 @@ fun ProfileManagementApp(
     
     var currentScreen by remember { mutableStateOf<Screen>(Screen.Connection) }
     var profileToEdit by remember { mutableStateOf<ServerProfile?>(null) }
+    
+    val context = LocalContext.current
+    
+    // Handle VPN permission state changes
+    LaunchedEffect(vpnPermissionState) {
+        when (vpnPermissionState) {
+            is com.selfproxy.vpn.ui.viewmodel.VpnPermissionState.Requesting -> {
+                // Check if permission is already granted
+                val intent = android.net.VpnService.prepare(context)
+                if (intent == null) {
+                    // Permission already granted
+                    connectionViewModel.onVpnPermissionGranted()
+                } else {
+                    // Show rationale before requesting permission
+                    connectionViewModel.requestVpnPermissionWithRationale()
+                }
+            }
+            else -> {
+                // Other states are handled by dialogs
+            }
+        }
+    }
     
     when (currentScreen) {
         is Screen.Connection -> {
@@ -91,6 +176,27 @@ fun ProfileManagementApp(
                 },
                 onOpenSettings = {
                     currentScreen = Screen.Settings
+                },
+                // VPN permission handling
+                showPermissionRationale = showPermissionRationale,
+                onDismissPermissionRationale = {
+                    connectionViewModel.dismissPermissionRationale()
+                    connectionViewModel.clearVpnPermissionState()
+                },
+                onProceedWithPermission = {
+                    connectionViewModel.proceedWithPermissionRequest()
+                    // Launch the VPN permission request
+                    val intent = android.net.VpnService.prepare(context)
+                    if (intent != null) {
+                        (context as? MainActivity)?.requestVpnPermission()
+                    } else {
+                        // Permission already granted
+                        connectionViewModel.onVpnPermissionGranted()
+                    }
+                },
+                vpnPermissionDenied = vpnPermissionState is com.selfproxy.vpn.ui.viewmodel.VpnPermissionState.Denied,
+                onDismissPermissionDenied = {
+                    connectionViewModel.clearVpnPermissionState()
                 }
             )
         }

@@ -305,7 +305,7 @@
   - Define dependencies for ViewModels
   - _Requirements: Architecture requirement_
 
-- [ ] 23. Implement VPN Permission Handling
+- [x] 23. Implement VPN Permission Handling
   - Request VPN permission using VpnService.prepare()
   - Handle permission grant/denial
   - Show permission rationale to user
