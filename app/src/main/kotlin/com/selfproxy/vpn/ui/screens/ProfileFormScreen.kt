@@ -6,13 +6,17 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Help
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.selfproxy.vpn.data.model.*
 import com.selfproxy.vpn.domain.model.Protocol
+import com.selfproxy.vpn.ui.components.ProtocolInfoCard
+import com.selfproxy.vpn.ui.components.ProtocolRecommendationsDialog
 
 /**
  * Profile form screen for creating or editing VPN profiles.
@@ -23,6 +27,7 @@ import com.selfproxy.vpn.domain.model.Protocol
 @Composable
 fun ProfileFormScreen(
     profile: ServerProfile? = null,
+    initialProtocol: Protocol? = null,
     onSave: (ServerProfile) -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier
@@ -30,7 +35,7 @@ fun ProfileFormScreen(
     val isEditing = profile != null
     
     var name by remember { mutableStateOf(profile?.name ?: "") }
-    var selectedProtocol by remember { mutableStateOf(profile?.protocol ?: Protocol.WIREGUARD) }
+    var selectedProtocol by remember { mutableStateOf(profile?.protocol ?: initialProtocol ?: Protocol.WIREGUARD) }
     var hostname by remember { mutableStateOf(profile?.hostname ?: "") }
     var port by remember { mutableStateOf(profile?.port?.toString() ?: "51820") }
     
@@ -48,6 +53,18 @@ fun ProfileFormScreen(
     var vlessTlsServerName by remember { mutableStateOf(profile?.vlessConfigJson?.let { profile.getVlessConfig().tlsSettings?.serverName } ?: "") }
     
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var showProtocolRecommendations by remember { mutableStateOf(false) }
+    
+    // Show protocol recommendations dialog for new profiles
+    if (showProtocolRecommendations) {
+        ProtocolRecommendationsDialog(
+            onDismiss = { showProtocolRecommendations = false },
+            onProtocolSelected = { protocol ->
+                selectedProtocol = protocol
+                showProtocolRecommendations = false
+            }
+        )
+    }
     
     Scaffold(
         topBar = {
@@ -102,8 +119,12 @@ fun ProfileFormScreen(
             if (!isEditing) {
                 ProtocolSelector(
                     selectedProtocol = selectedProtocol,
-                    onProtocolSelected = { selectedProtocol = it }
+                    onProtocolSelected = { selectedProtocol = it },
+                    onShowRecommendations = { showProtocolRecommendations = true }
                 )
+            } else {
+                // Show protocol info for existing profiles
+                ProtocolInfoCard(protocol = selectedProtocol)
             }
             
             OutlinedTextField(
@@ -221,14 +242,35 @@ fun ProfileFormScreen(
 private fun ProtocolSelector(
     selectedProtocol: Protocol,
     onProtocolSelected: (Protocol) -> Unit,
+    onShowRecommendations: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
-        Text(
-            text = "Protocol",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Protocol",
+                style = MaterialTheme.typography.titleMedium
+            )
+            
+            TextButton(
+                onClick = onShowRecommendations,
+                contentPadding = PaddingValues(horizontal = 8.dp)
+            ) {
+                Icon(
+                    Icons.Default.Help,
+                    contentDescription = "Protocol recommendations",
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text("Help me choose", style = MaterialTheme.typography.labelMedium)
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(8.dp))
         
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -251,7 +293,7 @@ private fun ProtocolSelector(
         // Protocol description
         Text(
             text = when (selectedProtocol) {
-                Protocol.WIREGUARD -> "Recommended: Fast, efficient, and battery-friendly. Best for most users."
+                Protocol.WIREGUARD -> "⭐ Recommended: Fast, efficient, and battery-friendly. Best for most users."
                 Protocol.VLESS -> "Advanced: For users requiring obfuscation in restrictive networks."
             },
             style = MaterialTheme.typography.bodySmall,

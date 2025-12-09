@@ -14,8 +14,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.selfproxy.vpn.data.model.ServerProfile
+import com.selfproxy.vpn.domain.model.Protocol
 import com.selfproxy.vpn.ui.screens.ProfileFormScreen
 import com.selfproxy.vpn.ui.screens.ProfileListScreen
+import com.selfproxy.vpn.ui.screens.WelcomeScreen
 import com.selfproxy.vpn.ui.theme.SelfProxyTheme
 import com.selfproxy.vpn.ui.viewmodel.ProfileViewModel
 import com.selfproxy.vpn.ui.viewmodel.ConnectionViewModel
@@ -157,8 +159,13 @@ fun ProfileManagementApp(
     
     var currentScreen by remember { mutableStateOf<Screen>(Screen.Connection) }
     var profileToEdit by remember { mutableStateOf<ServerProfile?>(null) }
+    var selectedProtocolForNewProfile by remember { mutableStateOf<Protocol?>(null) }
+    var hasSeenWelcome by remember { mutableStateOf(false) }
     
     val context = LocalContext.current
+    
+    // Show welcome screen if no profiles exist and user hasn't seen it yet
+    val shouldShowWelcome = profiles.isEmpty() && !hasSeenWelcome
     
     // Handle VPN permission state changes
     LaunchedEffect(vpnPermissionState) {
@@ -178,6 +185,22 @@ fun ProfileManagementApp(
                 // Other states are handled by dialogs
             }
         }
+    }
+    
+    // Show welcome screen if appropriate
+    if (shouldShowWelcome) {
+        WelcomeScreen(
+            onCreateProfile = { protocol ->
+                hasSeenWelcome = true
+                selectedProtocolForNewProfile = protocol
+                profileToEdit = null
+                currentScreen = Screen.ProfileForm
+            },
+            onSkip = {
+                hasSeenWelcome = true
+            }
+        )
+        return
     }
     
     when (currentScreen) {
@@ -267,15 +290,18 @@ fun ProfileManagementApp(
         is Screen.ProfileForm -> {
             ProfileFormScreen(
                 profile = profileToEdit,
+                initialProtocol = selectedProtocolForNewProfile,
                 onSave = { profile ->
                     if (profile.id == 0L) {
                         profileViewModel.createProfile(profile)
                     } else {
                         profileViewModel.updateProfile(profile)
                     }
+                    selectedProtocolForNewProfile = null
                     currentScreen = Screen.ProfileList
                 },
                 onCancel = {
+                    selectedProtocolForNewProfile = null
                     currentScreen = Screen.ProfileList
                 }
             )

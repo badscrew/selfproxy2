@@ -335,7 +335,7 @@
   - Add diagnostic information collection
   - _Requirements: 3.6, 3.8, 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 12.7_
 
-- [ ] 27. Implement Protocol Recommendations UI
+- [x] 27. Implement Protocol Recommendations UI
   - Add protocol selection guidance
   - Highlight WireGuard as recommended default
   - Explain VLESS use cases
