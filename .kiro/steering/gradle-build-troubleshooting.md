@@ -4,6 +4,114 @@ inclusion: always
 
 # Gradle Build Troubleshooting
 
+## Platform-Specific Gradle Wrapper Usage
+
+### Determining Your Platform
+
+Before running Gradle commands, you need to know which Gradle wrapper to use based on your operating system:
+
+**Windows:**
+- Use `.\gradlew.bat` (PowerShell) or `gradlew.bat` (CMD)
+- File path separators: backslash `\`
+- Example: `.\gradlew.bat app:testDebugUnitTest`
+
+**macOS/Linux:**
+- Use `./gradlew` (bash/zsh/sh)
+- File path separators: forward slash `/`
+- Example: `./gradlew app:testDebugUnitTest`
+- **Important:** Ensure gradlew has execute permissions: `chmod +x gradlew`
+
+### Quick Platform Check
+
+**On macOS/Linux:**
+```bash
+# Check your shell
+echo $SHELL
+# Output examples: /bin/bash, /bin/zsh, /bin/sh
+
+# Check if gradlew exists and is executable
+ls -la gradlew
+# Should show: -rwxr-xr-x (x means executable)
+
+# If not executable, fix it:
+chmod +x gradlew
+```
+
+**On Windows:**
+```powershell
+# Check if you're in PowerShell
+$PSVersionTable.PSVersion
+# Or check if gradlew.bat exists
+Test-Path .\gradlew.bat
+```
+
+### Common Mistakes
+
+❌ **Wrong - Using Windows wrapper on macOS/Linux:**
+```bash
+.\gradlew.bat app:testDebugUnitTest
+# Error: command not found: .gradlew.bat
+```
+
+❌ **Wrong - Using Unix wrapper on Windows:**
+```powershell
+./gradlew app:testDebugUnitTest
+# Error: command not found: ./gradlew
+```
+
+❌ **Wrong - Missing execute permissions on Unix:**
+```bash
+./gradlew app:testDebugUnitTest
+# Error: Permission denied
+```
+
+✅ **Correct - Platform-appropriate commands:**
+
+**Windows (PowerShell):**
+```powershell
+.\gradlew.bat app:testDebugUnitTest
+.\gradlew.bat --stop
+.\gradlew.bat app:assembleDebug
+```
+
+**macOS/Linux:**
+```bash
+./gradlew app:testDebugUnitTest
+./gradlew --stop
+./gradlew app:assembleDebug
+```
+
+### Setting Up Gradle Wrapper
+
+If the Gradle wrapper is missing or incomplete:
+
+**Missing gradlew (Unix) but have gradlew.bat:**
+1. The gradlew script should be in the project root
+2. Ensure it has execute permissions: `chmod +x gradlew`
+3. If missing, you can generate it using an existing Gradle installation or copy from another project
+
+**Missing gradle-wrapper.jar:**
+```bash
+# Download the wrapper jar (adjust version as needed)
+curl -L -o gradle/wrapper/gradle-wrapper.jar \
+  https://raw.githubusercontent.com/gradle/gradle/v8.2.0/gradle/wrapper/gradle-wrapper.jar
+```
+
+**Missing local.properties (Android projects):**
+```bash
+# macOS/Linux
+echo "sdk.dir=$HOME/Library/Android/sdk" > local.properties
+
+# Or find your SDK location
+ls -d ~/Library/Android/sdk 2>/dev/null || \
+ls -d ~/Android/Sdk 2>/dev/null
+```
+
+```powershell
+# Windows
+echo "sdk.dir=C:\\Users\\$env:USERNAME\\AppData\\Local\\Android\\sdk" > local.properties
+```
+
 ## Common Build Issues and Solutions
 
 This document covers common Gradle build issues encountered during development and their solutions.
@@ -319,56 +427,110 @@ gradle androidApp:assembleDebug
 
 ### Build Commands
 
+**Windows (PowerShell):**
 ```powershell
 # Debug build
-.\gradlew.bat androidApp:assembleDebug
+.\gradlew.bat app:assembleDebug
 
 # Release build
-.\gradlew.bat androidApp:assembleRelease
+.\gradlew.bat app:assembleRelease
 
 # Install on device
-.\gradlew.bat androidApp:installDebug
+.\gradlew.bat app:installDebug
 
 # Build and install
-.\gradlew.bat androidApp:assembleDebug
-adb install -r androidApp\build\outputs\apk\debug\androidApp-debug.apk
+.\gradlew.bat app:assembleDebug
+adb install -r app\build\outputs\apk\debug\app-debug.apk
+```
+
+**macOS/Linux:**
+```bash
+# Debug build
+./gradlew app:assembleDebug
+
+# Release build
+./gradlew app:assembleRelease
+
+# Install on device
+./gradlew app:installDebug
+
+# Build and install
+./gradlew app:assembleDebug
+adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
 ### Troubleshooting Commands
 
+**Windows (PowerShell):**
 ```powershell
 # Nuclear option - stop everything and clean
 .\gradlew.bat --stop
 taskkill /F /IM java.exe 2>$null
 Start-Sleep -Seconds 3
-Remove-Item -Recurse -Force shared\build,androidApp\build,.gradle -ErrorAction SilentlyContinue
-.\gradlew.bat androidApp:assembleDebug
+Remove-Item -Recurse -Force app\build,.gradle -ErrorAction SilentlyContinue
+.\gradlew.bat app:assembleDebug
 
 # Check what's running
 .\gradlew.bat --status
 
 # Verbose build output
-.\gradlew.bat androidApp:assembleDebug --info
+.\gradlew.bat app:assembleDebug --info
 
 # Debug build output
-.\gradlew.bat androidApp:assembleDebug --debug
+.\gradlew.bat app:assembleDebug --debug
 
 # Build with stacktrace
-.\gradlew.bat androidApp:assembleDebug --stacktrace
+.\gradlew.bat app:assembleDebug --stacktrace
+```
+
+**macOS/Linux:**
+```bash
+# Nuclear option - stop everything and clean
+./gradlew --stop
+pkill -9 java
+sleep 2
+rm -rf app/build .gradle
+./gradlew app:assembleDebug
+
+# Check what's running
+./gradlew --status
+
+# Verbose build output
+./gradlew app:assembleDebug --info
+
+# Debug build output
+./gradlew app:assembleDebug --debug
+
+# Build with stacktrace
+./gradlew app:assembleDebug --stacktrace
 ```
 
 ### Testing Commands
 
+**Windows (PowerShell):**
 ```powershell
 # Run all tests
-.\gradlew.bat shared:testDebugUnitTest
+.\gradlew.bat app:testDebugUnitTest
 
 # Run specific test
-.\gradlew.bat shared:testDebugUnitTest --tests "com.sshtunnel.data.ServerProfilePropertiesTest"
+.\gradlew.bat app:testDebugUnitTest --tests "com.selfproxy.vpn.data.model.WireGuardProfilePropertiesTest"
 
 # Clean and test
-Remove-Item -Recurse -Force shared\build\test-results -ErrorAction SilentlyContinue
-.\gradlew.bat shared:testDebugUnitTest
+Remove-Item -Recurse -Force app\build\test-results -ErrorAction SilentlyContinue
+.\gradlew.bat app:testDebugUnitTest
+```
+
+**macOS/Linux:**
+```bash
+# Run all tests
+./gradlew app:testDebugUnitTest
+
+# Run specific test
+./gradlew app:testDebugUnitTest --tests "com.selfproxy.vpn.data.model.WireGuardProfilePropertiesTest"
+
+# Clean and test
+rm -rf app/build/test-results
+./gradlew app:testDebugUnitTest
 ```
 
 ## When All Else Fails
@@ -426,18 +588,39 @@ This generates a detailed build report showing what's slow.
 
 ## Summary
 
-**Most Common Solution:**
+### Quick Fix Commands by Platform
+
+**Windows (PowerShell) - Most Common Solution:**
 ```powershell
-.\gradlew.bat --stop ; taskkill /F /IM java.exe 2>$null ; Start-Sleep -Seconds 2 ; .\gradlew.bat androidApp:assembleDebug
+.\gradlew.bat --stop ; taskkill /F /IM java.exe 2>$null ; Start-Sleep -Seconds 2 ; .\gradlew.bat app:assembleDebug
 ```
 
-**Nuclear Option:**
+**Windows (PowerShell) - Nuclear Option:**
 ```powershell
 .\gradlew.bat --stop
 taskkill /F /IM java.exe 2>$null
 Start-Sleep -Seconds 3
-Remove-Item -Recurse -Force shared\build,androidApp\build -ErrorAction SilentlyContinue
-.\gradlew.bat androidApp:assembleDebug
+Remove-Item -Recurse -Force app\build,.gradle -ErrorAction SilentlyContinue
+.\gradlew.bat app:assembleDebug
 ```
 
-Remember: Most build issues on Windows are caused by file locks. Stopping the daemon and killing Java processes solves 90% of problems.
+**macOS/Linux - Most Common Solution:**
+```bash
+./gradlew --stop && pkill -9 java ; sleep 2 ; ./gradlew app:assembleDebug
+```
+
+**macOS/Linux - Nuclear Option:**
+```bash
+./gradlew --stop
+pkill -9 java
+sleep 2
+rm -rf app/build .gradle
+./gradlew app:assembleDebug
+```
+
+### Key Takeaways
+
+- **Windows:** Use `.\gradlew.bat` - File locks are common, stopping daemon and killing Java processes solves 90% of problems
+- **macOS/Linux:** Use `./gradlew` - Ensure execute permissions with `chmod +x gradlew`
+- **Both:** Always use the Gradle wrapper, not system-installed Gradle
+- **Both:** Stop daemon between major changes: `gradlew --stop` or `gradlew.bat --stop`
