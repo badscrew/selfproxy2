@@ -215,7 +215,7 @@
   - Test invalid format handling
   - _Requirements: 16.10_
 
-- [ ] 15. Implement Connection Testing
+- [x] 15. Implement Connection Testing
   - Add connection test method to ProtocolAdapter
   - Implement WireGuard handshake test
   - Implement VLESS connectivity test
@@ -223,7 +223,7 @@
   - Display test results with error details
   - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 8.9, 8.10_
 
-- [ ] 15.1 Write unit tests for connection testing
+- [x] 15.1 Write unit tests for connection testing
   - Test timeout handling
   - Test error message generation
   - Test latency calculation
