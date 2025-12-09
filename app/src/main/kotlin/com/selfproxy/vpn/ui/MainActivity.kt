@@ -140,6 +140,7 @@ fun ProfileManagementApp(
     // VPN permission state
     val vpnPermissionState by connectionViewModel.vpnPermissionState.collectAsState()
     val showPermissionRationale by connectionViewModel.showPermissionRationale.collectAsState()
+    val currentError by connectionViewModel.currentError.collectAsState()
     
     val settings by settingsViewModel.settings.collectAsState()
     val validationErrors by settingsViewModel.validationErrors.collectAsState()
@@ -187,6 +188,7 @@ fun ProfileManagementApp(
                 statistics = statistics,
                 testResult = testResult,
                 isTesting = isTesting,
+                currentError = currentError,
                 onConnect = { profileId ->
                     connectionViewModel.connect(profileId)
                 },
@@ -201,6 +203,18 @@ fun ProfileManagementApp(
                 },
                 onClearTestResult = {
                     connectionViewModel.clearTestResult()
+                },
+                onClearError = {
+                    connectionViewModel.clearError()
+                },
+                onExportDiagnostics = {
+                    // Export diagnostic report
+                    val report = connectionViewModel.getDiagnosticReport()
+                    if (report != null) {
+                        // TODO: Implement file export or sharing
+                        // For now, just log it
+                        android.util.Log.d("Diagnostics", report)
+                    }
                 },
                 onSelectProfile = {
                     currentScreen = Screen.ProfileList

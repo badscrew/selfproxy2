@@ -18,8 +18,11 @@ import androidx.compose.ui.unit.dp
 import com.selfproxy.vpn.data.model.ServerProfile
 import com.selfproxy.vpn.domain.adapter.ConnectionStatistics
 import com.selfproxy.vpn.domain.adapter.ConnectionTestResult
+import com.selfproxy.vpn.domain.manager.ConnectionException
 import com.selfproxy.vpn.domain.model.ConnectionState
 import com.selfproxy.vpn.domain.model.Protocol
+import com.selfproxy.vpn.ui.components.DiagnosticDialog
+import com.selfproxy.vpn.ui.components.ErrorDialog
 import com.selfproxy.vpn.ui.theme.*
 import java.text.DecimalFormat
 import kotlin.time.Duration.Companion.milliseconds
@@ -37,11 +40,14 @@ fun ConnectionScreen(
     statistics: ConnectionStatistics?,
     testResult: ConnectionTestResult?,
     isTesting: Boolean,
+    currentError: ConnectionException?,
     onConnect: (Long) -> Unit,
     onDisconnect: () -> Unit,
     onTestConnection: (Long) -> Unit,
     onResetStatistics: () -> Unit,
     onClearTestResult: () -> Unit,
+    onClearError: () -> Unit,
+    onExportDiagnostics: () -> Unit,
     onSelectProfile: () -> Unit,
     onOpenSettings: () -> Unit = {},
     modifier: Modifier = Modifier,
@@ -52,6 +58,7 @@ fun ConnectionScreen(
     vpnPermissionDenied: Boolean = false,
     onDismissPermissionDenied: () -> Unit = {}
 ) {
+    var showDiagnostics by remember { mutableStateOf(false) }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -120,6 +127,30 @@ fun ConnectionScreen(
             if (connectionState is ConnectionState.Error) {
                 ErrorCard(error = connectionState.error)
             }
+        }
+        
+        // Error Dialog
+        if (currentError != null) {
+            ErrorDialog(
+                error = currentError,
+                onDismiss = onClearError,
+                onRetry = currentProfile?.let { profile ->
+                    { onConnect(profile.id) }
+                },
+                onViewDiagnostics = { showDiagnostics = true }
+            )
+        }
+        
+        // Diagnostic Dialog
+        if (showDiagnostics && currentError != null) {
+            DiagnosticDialog(
+                error = currentError,
+                onDismiss = { showDiagnostics = false },
+                onExport = {
+                    showDiagnostics = false
+                    onExportDiagnostics()
+                }
+            )
         }
         
         // VPN Permission Rationale Dialog

@@ -5,6 +5,9 @@ import com.selfproxy.vpn.domain.adapter.ProtocolAdapter
 import com.selfproxy.vpn.domain.model.Connection
 import com.selfproxy.vpn.domain.model.ConnectionState
 import com.selfproxy.vpn.domain.model.Protocol
+import com.selfproxy.vpn.domain.model.VpnError
+import com.selfproxy.vpn.domain.model.getDiagnosticReport
+import com.selfproxy.vpn.domain.model.toVpnError
 import com.selfproxy.vpn.domain.repository.ProfileRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -246,110 +249,28 @@ class ConnectionManager(
     /**
      * Generates a user-friendly error message based on the error and protocol.
      * 
-     * Requirement 3.6: Connection error messaging
+     * Requirements:
+     * - 3.6: Connection error messaging
+     * - 12.1-12.7: Protocol-specific error handling
      * 
      * @param error The original error
      * @param protocol The protocol being used
      * @return A ConnectionException with a specific, actionable error message
      */
     private fun generateConnectionError(error: Throwable?, protocol: Protocol): ConnectionException {
-        val message = error?.message ?: "Unknown error"
-        
-        // Check for common error patterns and generate specific messages
-        return when {
-            // Authentication errors
-            message.contains("authentication", ignoreCase = true) ||
-            message.contains("invalid key", ignoreCase = true) ||
-            message.contains("invalid uuid", ignoreCase = true) -> {
-                when (protocol) {
-                    Protocol.WIREGUARD -> ConnectionException(
-                        "Authentication failed: Invalid WireGuard keys. Please verify your private key and server's public key.",
-                        error
-                    )
-                    Protocol.VLESS -> ConnectionException(
-                        "Authentication failed: Invalid UUID. Please verify your VLESS UUID is correct.",
-                        error
-                    )
-                }
-            }
-            
-            // Network unreachable errors
-            message.contains("unreachable", ignoreCase = true) ||
-            message.contains("cannot resolve", ignoreCase = true) ||
-            message.contains("network", ignoreCase = true) -> {
-                ConnectionException(
-                    "Server unreachable: Cannot connect to ${protocol.name} server. Check your internet connection and server address.",
-                    error
-                )
-            }
-            
-            // Timeout errors
-            message.contains("timeout", ignoreCase = true) ||
-            message.contains("timed out", ignoreCase = true) -> {
-                when (protocol) {
-                    Protocol.WIREGUARD -> ConnectionException(
-                        "Connection timeout: No response from WireGuard server. Check firewall settings and ensure UDP port is open.",
-                        error
-                    )
-                    Protocol.VLESS -> ConnectionException(
-                        "Connection timeout: No response from VLESS server. Check firewall settings and server configuration.",
-                        error
-                    )
-                }
-            }
-            
-            // Handshake errors (WireGuard-specific)
-            message.contains("handshake", ignoreCase = true) -> {
-                ConnectionException(
-                    "Handshake failed: WireGuard handshake timeout. Verify keys are correct and server is running.",
-                    error
-                )
-            }
-            
-            // Configuration errors
-            message.contains("invalid configuration", ignoreCase = true) ||
-            message.contains("invalid format", ignoreCase = true) -> {
-                ConnectionException(
-                    "Invalid configuration: ${message}. Please check your profile settings.",
-                    error
-                )
-            }
-            
-            // TLS/Certificate errors (VLESS-specific)
-            message.contains("certificate", ignoreCase = true) ||
-            message.contains("tls", ignoreCase = true) -> {
-                ConnectionException(
-                    "TLS error: Certificate validation failed. Check server certificate and TLS settings.",
-                    error
-                )
-            }
-            
-            // Transport protocol errors (VLESS-specific)
-            message.contains("transport", ignoreCase = true) ||
-            message.contains("websocket", ignoreCase = true) ||
-            message.contains("grpc", ignoreCase = true) -> {
-                ConnectionException(
-                    "Transport protocol error: Failed to establish ${protocol.name} connection. Try a different transport protocol.",
-                    error
-                )
-            }
-            
-            // Permission errors
-            message.contains("permission", ignoreCase = true) -> {
-                ConnectionException(
-                    "Permission denied: VPN permission required. Please grant VPN permission in settings.",
-                    error
-                )
-            }
-            
-            // Generic error with protocol context
-            else -> {
-                ConnectionException(
-                    "Connection failed: ${message}. Protocol: ${protocol.name}",
-                    error
-                )
-            }
+        if (error == null) {
+            return ConnectionException("Unknown error occurred", null)
         }
+        
+        // Convert to VpnError for structured error handling
+        val vpnError = error.toVpnError(protocol)
+        
+        // Create ConnectionException with VpnError information
+        return ConnectionException(
+            message = vpnError.message,
+            cause = error,
+            vpnError = vpnError
+        )
     }
 }
 
@@ -357,8 +278,46 @@ class ConnectionManager(
  * Exception thrown when connection operations fail.
  * 
  * Contains user-friendly error messages suitable for display in the UI.
+ * Includes structured VpnError for detailed error information and diagnostics.
+ * 
+ * Requirements:
+ * - 3.6: Specific error messages
+ * - 12.8: Diagnostic information collection
  */
 class ConnectionException(
     message: String,
-    cause: Throwable? = null
-) : Exception(message, cause)
+    cause: Throwable? = null,
+    val vpnError: VpnError? = null
+) : Exception(message, cause) {
+    
+    /**
+     * Gets the suggested action for this error.
+     */
+    fun getSuggestedAction(): String {
+        return vpnError?.suggestedAction ?: "Check your configuration and try again."
+    }
+    
+    /**
+     * Gets diagnostic information for troubleshooting.
+     */
+    fun getDiagnosticInfo(): Map<String, String> {
+        return vpnError?.diagnosticInfo ?: emptyMap()
+    }
+    
+    /**
+     * Gets a full diagnostic report for export.
+     */
+    fun getDiagnosticReport(): String {
+        return if (vpnError != null) {
+            vpnError.getDiagnosticReport()
+        } else {
+            buildString {
+                appendLine("Error: $message")
+                appendLine()
+                appendLine("Cause: ${cause?.message ?: "Unknown"}")
+                appendLine()
+                appendLine("Timestamp: ${System.currentTimeMillis()}")
+            }
+        }
+    }
+}

@@ -7,6 +7,7 @@ import com.selfproxy.vpn.data.model.ServerProfile
 import com.selfproxy.vpn.domain.adapter.ConnectionStatistics
 import com.selfproxy.vpn.domain.adapter.ConnectionTestResult
 import com.selfproxy.vpn.domain.adapter.ProtocolAdapter
+import com.selfproxy.vpn.domain.manager.ConnectionException
 import com.selfproxy.vpn.domain.manager.ConnectionManager
 import com.selfproxy.vpn.domain.manager.TrafficMonitor
 import com.selfproxy.vpn.domain.model.ConnectionState
@@ -61,16 +62,37 @@ class ConnectionViewModel(
     // VPN permission launcher callback
     private var vpnPermissionLauncher: ((Intent) -> Unit)? = null
     
+    // Current error state
+    private val _currentError = MutableStateFlow<ConnectionException?>(null)
+    val currentError: StateFlow<ConnectionException?> = _currentError.asStateFlow()
+    
     init {
         // Load current profile if connected
         viewModelScope.launch {
             connectionState.collect { state ->
-                if (state is ConnectionState.Connected) {
-                    loadCurrentProfile(state.connection.profileId)
-                    trafficMonitor.start()
-                } else if (state is ConnectionState.Disconnected) {
-                    _currentProfile.value = null
-                    trafficMonitor.stop()
+                when (state) {
+                    is ConnectionState.Connected -> {
+                        loadCurrentProfile(state.connection.profileId)
+                        trafficMonitor.start()
+                        _currentError.value = null
+                    }
+                    is ConnectionState.Disconnected -> {
+                        _currentProfile.value = null
+                        trafficMonitor.stop()
+                        _currentError.value = null
+                    }
+                    is ConnectionState.Error -> {
+                        // Extract ConnectionException if available
+                        val error = state.error as? ConnectionException
+                        _currentError.value = error ?: ConnectionException(
+                            message = state.error.message ?: "Unknown error",
+                            cause = state.error
+                        )
+                    }
+                    else -> {
+                        // Connecting or Reconnecting - clear error
+                        _currentError.value = null
+                    }
                 }
             }
         }
@@ -259,6 +281,26 @@ class ConnectionViewModel(
      */
     fun clearTestResult() {
         _testResult.value = null
+    }
+    
+    /**
+     * Clears the current error.
+     * 
+     * Called when the user dismisses the error dialog.
+     */
+    fun clearError() {
+        _currentError.value = null
+    }
+    
+    /**
+     * Gets the diagnostic report for the current error.
+     * 
+     * Requirement 12.8: Diagnostic information export
+     * 
+     * @return Diagnostic report string, or null if no error
+     */
+    fun getDiagnosticReport(): String? {
+        return _currentError.value?.getDiagnosticReport()
     }
     
     /**
