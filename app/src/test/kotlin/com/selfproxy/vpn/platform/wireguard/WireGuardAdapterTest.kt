@@ -1,6 +1,7 @@
 package com.selfproxy.vpn.platform.wireguard
 
 import android.content.Context
+import com.selfproxy.vpn.TestKeys
 import com.selfproxy.vpn.data.model.ServerProfile
 import com.selfproxy.vpn.data.model.WireGuardConfig
 import com.selfproxy.vpn.domain.model.Protocol
@@ -33,10 +34,10 @@ class WireGuardAdapterTest {
     private lateinit var backend: Backend
     private lateinit var adapter: WireGuardAdapter
     
-    // Valid test keys (generated for testing)
-    private val validPrivateKey = "YAnz5TF+lXXJte14tji3zlMNftqL+Uc+oCONvOkjpkI="
-    private val validPublicKey = "HIgo9xNzJMWLKASShiTqIybxZ0U3wGLiUeJ1PKf8ykw="
-    private val validPresharedKey = "FpCyhws9cxwWoV4xELtfJvjJN+zQVRPISllRWgeopVE="
+    // Use TestKeys for consistency
+    private val validPrivateKey = TestKeys.VALID_PRIVATE_KEY
+    private val validPublicKey = TestKeys.VALID_PUBLIC_KEY
+    private val validPresharedKey = TestKeys.VALID_PRESHARED_KEY
     
     @Before
     fun setup() {

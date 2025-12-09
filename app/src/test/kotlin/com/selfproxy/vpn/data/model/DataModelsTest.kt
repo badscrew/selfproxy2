@@ -1,8 +1,12 @@
 package com.selfproxy.vpn.data.model
 
+import com.selfproxy.vpn.TestKeys
 import com.selfproxy.vpn.domain.model.Protocol
+import io.mockk.unmockkAll
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.junit.After
+import org.junit.Before
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -12,6 +16,16 @@ import kotlin.test.assertNotNull
  * Unit tests for data models.
  */
 class DataModelsTest {
+    
+    @Before
+    fun setup() {
+        TestKeys.mockAndroidBase64()
+    }
+    
+    @After
+    fun teardown() {
+        unmockkAll()
+    }
     
     private val json = Json {
         ignoreUnknownKeys = true

@@ -36,7 +36,7 @@ class ConnectionScreenUiTest {
         hostname = "test.example.com",
         port = 51820,
         wireGuardConfig = WireGuardConfig(
-            publicKey = "testPublicKey123",
+            publicKey = "HIgo9xNzJMWLKASShiTqIybxZ0U3wGLiUeJ1PKf8ykw=",
             allowedIPs = listOf("0.0.0.0/0"),
             persistentKeepalive = 25,
             endpoint = "test.example.com:51820"

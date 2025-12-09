@@ -349,7 +349,7 @@ class ProfileManagementUiTest {
         lastUsed: Long? = null
     ): ServerProfile {
         val config = WireGuardConfig(
-            publicKey = "test_public_key_base64_encoded_32_bytes",
+            publicKey = "HIgo9xNzJMWLKASShiTqIybxZ0U3wGLiUeJ1PKf8ykw=",
             endpoint = "$hostname:$port",
             allowedIPs = listOf("0.0.0.0/0", "::/0"),
             persistentKeepalive = 25,

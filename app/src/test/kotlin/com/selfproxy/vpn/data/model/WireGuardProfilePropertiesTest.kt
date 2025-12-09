@@ -1,12 +1,16 @@
 package com.selfproxy.vpn.data.model
 
+import com.selfproxy.vpn.TestKeys
 import com.selfproxy.vpn.domain.model.Protocol
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.*
 import io.kotest.property.checkAll
+import io.mockk.unmockkAll
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.junit.After
+import org.junit.Before
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -17,6 +21,16 @@ import kotlin.test.assertNotNull
  * These tests validate universal properties that should hold across all valid inputs.
  */
 class WireGuardProfilePropertiesTest {
+    
+    @Before
+    fun setup() {
+        TestKeys.mockAndroidBase64()
+    }
+    
+    @After
+    fun teardown() {
+        unmockkAll()
+    }
     
     private val json = Json {
         ignoreUnknownKeys = true
@@ -85,17 +99,13 @@ class WireGuardProfilePropertiesTest {
 
 /**
  * Generates valid WireGuard public keys (base64-encoded 32-byte keys).
- * For testing purposes, we generate valid base64 strings of appropriate length.
+ * For testing purposes, we generate actual valid base64-encoded 32-byte keys.
  */
 fun Arb.Companion.wireGuardPublicKey(): Arb<String> = arbitrary {
-    // WireGuard keys are 32 bytes, base64-encoded = 44 characters (with padding)
-    val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-    buildString {
-        repeat(43) {
-            append(chars.random())
-        }
-        append('=') // Base64 padding
-    }
+    // Generate 32 random bytes
+    val bytes = ByteArray(32) { byte().bind() }
+    // Encode to base64 using Java's encoder (will be 44 characters with padding)
+    java.util.Base64.getEncoder().encodeToString(bytes)
 }
 
 /**

@@ -1,11 +1,15 @@
 package com.selfproxy.vpn.data.config
 
+import com.selfproxy.vpn.TestKeys
 import com.selfproxy.vpn.data.model.FlowControl
 import com.selfproxy.vpn.data.model.TransportProtocol
 import com.selfproxy.vpn.domain.model.Protocol
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
+import io.mockk.unmockkAll
+import org.junit.After
+import org.junit.Before
 import org.junit.Test
 
 /**
@@ -15,6 +19,16 @@ import org.junit.Test
  * **Validates: Requirements 16.10**
  */
 class ConfigParsingTest {
+    
+    @Before
+    fun setup() {
+        TestKeys.mockAndroidBase64()
+    }
+    
+    @After
+    fun teardown() {
+        unmockkAll()
+    }
     
     // WireGuard INI Parsing Tests
     

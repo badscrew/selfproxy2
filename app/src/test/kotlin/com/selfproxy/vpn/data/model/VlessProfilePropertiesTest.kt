@@ -1,12 +1,16 @@
 package com.selfproxy.vpn.data.model
 
+import com.selfproxy.vpn.TestKeys
 import com.selfproxy.vpn.domain.model.Protocol
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.*
 import io.kotest.property.checkAll
+import io.mockk.unmockkAll
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.junit.After
+import org.junit.Before
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -17,6 +21,16 @@ import kotlin.test.assertNotNull
  * These tests validate universal properties that should hold across all valid inputs.
  */
 class VlessProfilePropertiesTest {
+    
+    @Before
+    fun setup() {
+        TestKeys.mockAndroidBase64()
+    }
+    
+    @After
+    fun teardown() {
+        unmockkAll()
+    }
     
     private val json = Json {
         ignoreUnknownKeys = true

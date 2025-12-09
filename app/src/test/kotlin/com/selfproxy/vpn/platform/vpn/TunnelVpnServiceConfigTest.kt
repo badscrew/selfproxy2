@@ -1,5 +1,6 @@
 package com.selfproxy.vpn.platform.vpn
 
+import com.selfproxy.vpn.TestKeys
 import com.selfproxy.vpn.data.model.WireGuardConfig
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -42,7 +43,7 @@ class TunnelVpnServiceConfigTest {
         // Arrange
         val expectedWireGuardMtu = 1420
         val wireGuardConfig = WireGuardConfig(
-            publicKey = "test-public-key",
+            publicKey = TestKeys.VALID_PUBLIC_KEY,
             allowedIPs = listOf("0.0.0.0/0"),
             endpoint = "vpn.example.com:51820",
             mtu = expectedWireGuardMtu
@@ -60,7 +61,7 @@ class TunnelVpnServiceConfigTest {
         // Arrange
         val expectedDefaultMtu = 1420
         val wireGuardConfig = WireGuardConfig(
-            publicKey = "test-public-key",
+            publicKey = TestKeys.VALID_PUBLIC_KEY,
             allowedIPs = listOf("0.0.0.0/0"),
             endpoint = "vpn.example.com:51820"
         )
@@ -77,7 +78,7 @@ class TunnelVpnServiceConfigTest {
         // Arrange & Act & Assert
         // Valid MTU values
         val validConfig1 = WireGuardConfig(
-            publicKey = "test-key",
+            publicKey = TestKeys.VALID_PUBLIC_KEY,
             allowedIPs = listOf("0.0.0.0/0"),
             endpoint = "vpn.example.com:51820",
             mtu = 1280
@@ -85,7 +86,7 @@ class TunnelVpnServiceConfigTest {
         assertEquals(1280, validConfig1.mtu)
         
         val validConfig2 = WireGuardConfig(
-            publicKey = "test-key",
+            publicKey = TestKeys.VALID_PUBLIC_KEY,
             allowedIPs = listOf("0.0.0.0/0"),
             endpoint = "vpn.example.com:51820",
             mtu = 1500
@@ -95,7 +96,7 @@ class TunnelVpnServiceConfigTest {
         // Invalid MTU values should throw
         try {
             WireGuardConfig(
-                publicKey = "test-key",
+                publicKey = TestKeys.VALID_PUBLIC_KEY,
                 allowedIPs = listOf("0.0.0.0/0"),
                 endpoint = "vpn.example.com:51820",
                 mtu = 1279
@@ -107,7 +108,7 @@ class TunnelVpnServiceConfigTest {
         
         try {
             WireGuardConfig(
-                publicKey = "test-key",
+                publicKey = TestKeys.VALID_PUBLIC_KEY,
                 allowedIPs = listOf("0.0.0.0/0"),
                 endpoint = "vpn.example.com:51820",
                 mtu = 1501
@@ -149,7 +150,7 @@ class TunnelVpnServiceConfigTest {
         // Arrange & Act & Assert
         // Valid allowed IPs
         val validConfig = WireGuardConfig(
-            publicKey = "test-key",
+            publicKey = TestKeys.VALID_PUBLIC_KEY,
             allowedIPs = listOf("0.0.0.0/0", "::/0"),
             endpoint = "vpn.example.com:51820"
         )
@@ -158,7 +159,7 @@ class TunnelVpnServiceConfigTest {
         // Empty allowed IPs should throw
         try {
             WireGuardConfig(
-                publicKey = "test-key",
+                publicKey = TestKeys.VALID_PUBLIC_KEY,
                 allowedIPs = emptyList(),
                 endpoint = "vpn.example.com:51820"
             )
@@ -173,7 +174,7 @@ class TunnelVpnServiceConfigTest {
         // Arrange & Act & Assert
         // Valid keepalive values
         val validConfig1 = WireGuardConfig(
-            publicKey = "test-key",
+            publicKey = TestKeys.VALID_PUBLIC_KEY,
             allowedIPs = listOf("0.0.0.0/0"),
             endpoint = "vpn.example.com:51820",
             persistentKeepalive = 0
@@ -181,7 +182,7 @@ class TunnelVpnServiceConfigTest {
         assertEquals(0, validConfig1.persistentKeepalive)
         
         val validConfig2 = WireGuardConfig(
-            publicKey = "test-key",
+            publicKey = TestKeys.VALID_PUBLIC_KEY,
             allowedIPs = listOf("0.0.0.0/0"),
             endpoint = "vpn.example.com:51820",
             persistentKeepalive = 25
@@ -189,7 +190,7 @@ class TunnelVpnServiceConfigTest {
         assertEquals(25, validConfig2.persistentKeepalive)
         
         val validConfig3 = WireGuardConfig(
-            publicKey = "test-key",
+            publicKey = TestKeys.VALID_PUBLIC_KEY,
             allowedIPs = listOf("0.0.0.0/0"),
             endpoint = "vpn.example.com:51820",
             persistentKeepalive = 65535
@@ -199,7 +200,7 @@ class TunnelVpnServiceConfigTest {
         // Invalid keepalive values should throw
         try {
             WireGuardConfig(
-                publicKey = "test-key",
+                publicKey = TestKeys.VALID_PUBLIC_KEY,
                 allowedIPs = listOf("0.0.0.0/0"),
                 endpoint = "vpn.example.com:51820",
                 persistentKeepalive = -1
@@ -211,7 +212,7 @@ class TunnelVpnServiceConfigTest {
         
         try {
             WireGuardConfig(
-                publicKey = "test-key",
+                publicKey = TestKeys.VALID_PUBLIC_KEY,
                 allowedIPs = listOf("0.0.0.0/0"),
                 endpoint = "vpn.example.com:51820",
                 persistentKeepalive = 65536

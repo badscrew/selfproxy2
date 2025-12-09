@@ -336,7 +336,7 @@ class ProfileFormUiTest {
     // Helper function to create test WireGuard profile
     private fun createTestWireGuardProfile(): ServerProfile {
         val config = WireGuardConfig(
-            publicKey = "test_public_key_base64_encoded_32_bytes",
+            publicKey = "HIgo9xNzJMWLKASShiTqIybxZ0U3wGLiUeJ1PKf8ykw=",
             endpoint = "vpn.example.com:51820",
             allowedIPs = listOf("0.0.0.0/0", "::/0"),
             persistentKeepalive = 25,
