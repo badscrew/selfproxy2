@@ -8,9 +8,9 @@ import android.content.Intent
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.selfproxy.vpn.R
+import com.selfproxy.vpn.domain.util.SanitizedLogger
 import com.selfproxy.vpn.data.model.ServerProfile
 import com.selfproxy.vpn.domain.adapter.ProtocolAdapter
 import com.selfproxy.vpn.domain.model.Protocol
@@ -87,12 +87,12 @@ class TunnelVpnService : VpnService() {
 
     override fun onCreate() {
         super.onCreate()
-        Log.d(TAG, "VPN service created")
+        SanitizedLogger.d(TAG, "VPN service created")
         createNotificationChannel()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d(TAG, "onStartCommand: action=${intent?.action}")
+        SanitizedLogger.d(TAG, "onStartCommand: action=${intent?.action}")
         
         when (intent?.action) {
             ACTION_START_VPN -> {
@@ -116,7 +116,7 @@ class TunnelVpnService : VpnService() {
     }
 
     override fun onDestroy() {
-        Log.d(TAG, "VPN service destroyed")
+        SanitizedLogger.d(TAG, "VPN service destroyed")
         stopVpnTunnel()
         serviceScope.cancel()
         super.onDestroy()
@@ -124,7 +124,7 @@ class TunnelVpnService : VpnService() {
 
     override fun onRevoke() {
         // User revoked VPN permission
-        Log.i(TAG, "VPN permission revoked by user")
+        SanitizedLogger.i(TAG, "VPN permission revoked by user")
         stopVpnTunnel()
         stopSelf()
     }
@@ -146,7 +146,7 @@ class TunnelVpnService : VpnService() {
         excludedApps: Set<String> = emptySet()
     ) {
         try {
-            Log.d(TAG, "Starting VPN tunnel")
+            SanitizedLogger.d(TAG, "Starting VPN tunnel")
             
             this.currentProfile = profile
             this.currentAdapter = adapter
@@ -158,7 +158,7 @@ class TunnelVpnService : VpnService() {
             tunInterface = createTunInterface(profile, ipv6Enabled, dnsServers, excludedApps)
             
             if (tunInterface == null) {
-                Log.e(TAG, "Failed to create TUN interface")
+                SanitizedLogger.e(TAG, "Failed to create TUN interface")
                 stopSelf()
                 return
             }
@@ -171,10 +171,10 @@ class TunnelVpnService : VpnService() {
             // Start packet routing
             startPacketRouting()
             
-            Log.i(TAG, "VPN tunnel started successfully")
+            SanitizedLogger.i(TAG, "VPN tunnel started successfully")
             
         } catch (e: Exception) {
-            Log.e(TAG, "Error starting VPN tunnel", e)
+            SanitizedLogger.e(TAG, "Error starting VPN tunnel", e)
             stopVpnTunnel()
             stopSelf()
         }
@@ -185,7 +185,7 @@ class TunnelVpnService : VpnService() {
      */
     fun stopVpnTunnel() {
         try {
-            Log.d(TAG, "Stopping VPN tunnel")
+            SanitizedLogger.d(TAG, "Stopping VPN tunnel")
             
             // Stop packet routing
             packetRoutingJob?.cancel()
@@ -199,10 +199,10 @@ class TunnelVpnService : VpnService() {
             currentAdapter = null
             currentProfile = null
             
-            Log.i(TAG, "VPN tunnel stopped")
+            SanitizedLogger.i(TAG, "VPN tunnel stopped")
             
         } catch (e: Exception) {
-            Log.e(TAG, "Error stopping VPN tunnel", e)
+            SanitizedLogger.e(TAG, "Error stopping VPN tunnel", e)
         }
     }
 
@@ -230,7 +230,7 @@ class TunnelVpnService : VpnService() {
         excludedApps: Set<String>
     ): ParcelFileDescriptor? {
         try {
-            Log.d(TAG, "Creating TUN interface")
+            SanitizedLogger.d(TAG, "Creating TUN interface")
             
             val builder = Builder()
                 .setSession("SelfProxy VPN")
@@ -243,17 +243,17 @@ class TunnelVpnService : VpnService() {
             
             // Configure IPv6 if enabled
             if (ipv6Enabled) {
-                Log.d(TAG, "Enabling IPv6 routing")
+                SanitizedLogger.d(TAG, "Enabling IPv6 routing")
                 builder.addAddress(IPV6_ADDRESS, IPV6_PREFIX_LENGTH)
                 builder.addRoute(IPV6_ROUTE, IPV6_ROUTE_PREFIX)
             } else {
-                Log.d(TAG, "IPv6 disabled - blocking IPv6 traffic")
+                SanitizedLogger.d(TAG, "IPv6 disabled - blocking IPv6 traffic")
                 // IPv6 traffic will be blocked by not adding IPv6 routes
             }
             
             // Configure DNS servers
             dnsServers.forEach { dns ->
-                Log.d(TAG, "Adding DNS server: $dns")
+                SanitizedLogger.d(TAG, "Adding DNS server: $dns")
                 builder.addDnsServer(dns)
             }
             
@@ -266,40 +266,40 @@ class TunnelVpnService : VpnService() {
                 Protocol.VLESS -> DEFAULT_MTU
                 null -> DEFAULT_MTU
             }
-            Log.d(TAG, "Setting MTU: $mtu")
+            SanitizedLogger.d(TAG, "Setting MTU: $mtu")
             builder.setMtu(mtu)
             
             // Configure per-app routing (exclude specified apps)
             excludedApps.forEach { packageName ->
                 try {
                     builder.addDisallowedApplication(packageName)
-                    Log.d(TAG, "Excluded app from VPN: $packageName")
+                    SanitizedLogger.d(TAG, "Excluded app from VPN: $packageName")
                 } catch (e: Exception) {
-                    Log.w(TAG, "Failed to exclude app: $packageName", e)
+                    SanitizedLogger.w(TAG, "Failed to exclude app: $packageName", e)
                 }
             }
             
             // Always exclude our own app to prevent routing loops
             try {
                 builder.addDisallowedApplication(packageName)
-                Log.d(TAG, "Excluded own app from VPN: $packageName")
+                SanitizedLogger.d(TAG, "Excluded own app from VPN: $packageName")
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to exclude own app - this may cause routing loops!", e)
+                SanitizedLogger.e(TAG, "Failed to exclude own app - this may cause routing loops!", e)
             }
             
             // Establish the VPN interface
             val tunInterface = builder.establish()
             
             if (tunInterface != null) {
-                Log.i(TAG, "TUN interface created successfully")
+                SanitizedLogger.i(TAG, "TUN interface created successfully")
             } else {
-                Log.e(TAG, "Failed to establish TUN interface")
+                SanitizedLogger.e(TAG, "Failed to establish TUN interface")
             }
             
             return tunInterface
             
         } catch (e: Exception) {
-            Log.e(TAG, "Error creating TUN interface", e)
+            SanitizedLogger.e(TAG, "Error creating TUN interface", e)
             return null
         }
     }
@@ -315,7 +315,7 @@ class TunnelVpnService : VpnService() {
         
         packetRoutingJob = serviceScope.launch {
             try {
-                Log.d(TAG, "Starting packet routing")
+                SanitizedLogger.d(TAG, "Starting packet routing")
                 
                 // Read packets from TUN interface
                 val inputStream = FileInputStream(tun.fileDescriptor)
@@ -337,21 +337,21 @@ class TunnelVpnService : VpnService() {
                                 // 2. Routed through the protocol adapter (WireGuard/VLESS)
                                 // 3. Response packets written back to TUN interface
                                 
-                                Log.v(TAG, "Received packet: $length bytes")
+                                SanitizedLogger.d(TAG, "Received packet: $length bytes")
                             }
                         } catch (e: IOException) {
                             if (isActive) {
-                                Log.e(TAG, "Error reading packet", e)
+                                SanitizedLogger.e(TAG, "Error reading packet", e)
                             }
                             break
                         }
                     }
                 }
                 
-                Log.d(TAG, "Packet routing stopped")
+                SanitizedLogger.d(TAG, "Packet routing stopped")
                 
             } catch (e: Exception) {
-                Log.e(TAG, "Error in packet routing", e)
+                SanitizedLogger.e(TAG, "Error in packet routing", e)
             }
         }
     }
