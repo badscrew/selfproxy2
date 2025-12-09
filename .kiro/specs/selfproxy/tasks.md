@@ -240,7 +240,7 @@
   - **Property 10: Log Sanitization**
   - **Validates: Requirements 2.6**
 
-- [ ] 17. Create Profile Management UI
+- [x] 17. Create Profile Management UI
   - Design profile list screen with Compose
   - Add profile creation/edit screen
   - Implement protocol selection UI
@@ -250,7 +250,7 @@
   - Add delete confirmation dialog
   - _Requirements: 1.1, 1.2, 1.3, 1.5, 1.7, 1.8, 1.9_
 
-- [ ] 17.1 Write UI tests for profile management
+- [x] 17.1 Write UI tests for profile management
   - Test profile list display
   - Test profile creation flow
   - Test profile deletion
