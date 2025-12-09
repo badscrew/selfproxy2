@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.selfproxy.vpn.domain.repository.CredentialStore
+import com.selfproxy.vpn.domain.util.SecurityValidator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -63,7 +64,8 @@ class AndroidCredentialStore(
         privateKey: String
     ): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
-            validateWireGuardKey(privateKey)
+            // Validate using SecurityValidator
+            SecurityValidator.validateWireGuardPrivateKey(privateKey).getOrThrow()
             encryptedPrefs.edit()
                 .putString("$WIREGUARD_PRIVATE_KEY_PREFIX$profileId", privateKey)
                 .apply()
@@ -85,7 +87,8 @@ class AndroidCredentialStore(
         presharedKey: String
     ): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
-            validateWireGuardKey(presharedKey)
+            // Validate using SecurityValidator
+            SecurityValidator.validateWireGuardPresharedKey(presharedKey).getOrThrow()
             encryptedPrefs.edit()
                 .putString("$WIREGUARD_PRESHARED_KEY_PREFIX$profileId", presharedKey)
                 .apply()
@@ -107,7 +110,8 @@ class AndroidCredentialStore(
         uuid: String
     ): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
-            validateVlessUuid(uuid)
+            // Validate using SecurityValidator
+            SecurityValidator.validateVlessUuid(uuid).getOrThrow()
             encryptedPrefs.edit()
                 .putString("$VLESS_UUID_PREFIX$profileId", uuid)
                 .apply()
@@ -141,47 +145,6 @@ class AndroidCredentialStore(
             encryptedPrefs.contains("$WIREGUARD_PRESHARED_KEY_PREFIX$profileId") ||
             encryptedPrefs.contains("$VLESS_UUID_PREFIX$profileId")
         }
-    
-
-    /**
-     * Validates a WireGuard key format.
-     * 
-     * @param key The key to validate
-     * @throws IllegalArgumentException if invalid
-     */
-    private fun validateWireGuardKey(key: String) {
-        require(key.isNotBlank()) { "WireGuard key cannot be blank" }
-        
-        // Decode base64 and check length
-        val decoded = try {
-            android.util.Base64.decode(key, android.util.Base64.NO_WRAP)
-        } catch (e: IllegalArgumentException) {
-            throw IllegalArgumentException("WireGuard key must be valid base64", e)
-        }
-        
-        require(decoded.size == 32) {
-            "WireGuard key must be 32 bytes (got ${decoded.size} bytes)"
-        }
-    }
-    
-    /**
-     * Validates a VLESS UUID format.
-     * 
-     * @param uuid The UUID to validate
-     * @throws IllegalArgumentException if invalid
-     */
-    private fun validateVlessUuid(uuid: String) {
-        require(uuid.isNotBlank()) { "VLESS UUID cannot be blank" }
-        
-        // RFC 4122 UUID format: 8-4-4-4-12 hex digits
-        val uuidRegex = Regex(
-            "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-        )
-        
-        require(uuidRegex.matches(uuid)) {
-            "VLESS UUID must be in RFC 4122 format (e.g., 550e8400-e29b-41d4-a716-446655440000)"
-        }
-    }
 }
 
 /**

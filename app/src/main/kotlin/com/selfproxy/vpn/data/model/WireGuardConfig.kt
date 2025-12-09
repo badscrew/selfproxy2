@@ -1,5 +1,6 @@
 package com.selfproxy.vpn.data.model
 
+import com.selfproxy.vpn.domain.util.SecurityValidator
 import kotlinx.serialization.Serializable
 
 /**
@@ -42,12 +43,27 @@ data class WireGuardConfig(
     val mtu: Int = 1420
 ) {
     init {
-        require(publicKey.isNotBlank()) { "Public key cannot be blank" }
-        require(allowedIPs.isNotEmpty()) { "Allowed IPs cannot be empty" }
+        // Validate public key format (base64-encoded 32-byte key)
+        SecurityValidator.validateWireGuardPublicKey(publicKey).getOrElse { error ->
+            throw IllegalArgumentException("Invalid public key: ${error.message}", error)
+        }
+        
+        // Validate allowed IPs format
+        SecurityValidator.validateAllowedIPs(allowedIPs).getOrElse { error ->
+            throw IllegalArgumentException("Invalid allowed IPs: ${error.message}", error)
+        }
+        
+        // Validate persistent keepalive range
         require(persistentKeepalive == null || persistentKeepalive in 0..65535) {
             "Persistent keepalive must be between 0 and 65535 seconds"
         }
-        require(endpoint.isNotBlank()) { "Endpoint cannot be blank" }
+        
+        // Validate endpoint format
+        SecurityValidator.validateWireGuardEndpoint(endpoint).getOrElse { error ->
+            throw IllegalArgumentException("Invalid endpoint: ${error.message}", error)
+        }
+        
+        // Validate MTU range
         require(mtu in 1280..1500) { "MTU must be between 1280 and 1500 bytes" }
     }
 }

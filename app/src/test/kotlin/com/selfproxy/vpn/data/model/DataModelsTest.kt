@@ -32,7 +32,7 @@ class DataModelsTest {
     fun `WireGuardConfig validates persistent keepalive range`() {
         assertFailsWith<IllegalArgumentException> {
             WireGuardConfig(
-                publicKey = "test-key",
+                publicKey = com.selfproxy.vpn.TestKeys.VALID_PUBLIC_KEY,
                 endpoint = "vpn.example.com:51820",
                 persistentKeepalive = 70000 // Too large
             )
@@ -43,7 +43,7 @@ class DataModelsTest {
     fun `WireGuardConfig validates MTU range`() {
         assertFailsWith<IllegalArgumentException> {
             WireGuardConfig(
-                publicKey = "test-key",
+                publicKey = com.selfproxy.vpn.TestKeys.VALID_PUBLIC_KEY,
                 endpoint = "vpn.example.com:51820",
                 mtu = 2000 // Too large
             )
@@ -53,7 +53,7 @@ class DataModelsTest {
     @Test
     fun `WireGuardConfig serialization works`() {
         val config = WireGuardConfig(
-            publicKey = "test-public-key",
+            publicKey = com.selfproxy.vpn.TestKeys.VALID_PUBLIC_KEY,
             allowedIPs = listOf("0.0.0.0/0", "::/0"),
             persistentKeepalive = 25,
             endpoint = "vpn.example.com:51820",
@@ -162,7 +162,7 @@ class DataModelsTest {
     @Test
     fun `ServerProfile createWireGuardProfile works`() {
         val config = WireGuardConfig(
-            publicKey = "test-public-key",
+            publicKey = com.selfproxy.vpn.TestKeys.VALID_PUBLIC_KEY,
             endpoint = "vpn.example.com:51820"
         )
         
@@ -224,7 +224,7 @@ class DataModelsTest {
     @Test
     fun `ServerProfile getVlessConfig throws for WireGuard profile`() {
         val config = WireGuardConfig(
-            publicKey = "test-key",
+            publicKey = com.selfproxy.vpn.TestKeys.VALID_PUBLIC_KEY,
             endpoint = "example.com:51820"
         )
         val profile = ServerProfile.createWireGuardProfile(

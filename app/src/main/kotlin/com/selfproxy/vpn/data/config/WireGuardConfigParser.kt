@@ -2,6 +2,7 @@ package com.selfproxy.vpn.data.config
 
 import com.selfproxy.vpn.data.model.ServerProfile
 import com.selfproxy.vpn.data.model.WireGuardConfig
+import com.selfproxy.vpn.domain.util.SecurityValidator
 
 /**
  * Parser for WireGuard configuration files (INI format).
@@ -100,17 +101,19 @@ object WireGuardConfigParser {
             
             val presharedKey = peerData["presharedkey"]
             
-            // Validate keys format (base64, 44 characters for 32-byte keys)
-            if (!isValidBase64Key(privateKey)) {
-                return Result.failure(ConfigParseException("Invalid PrivateKey format. Expected base64-encoded 32-byte key"))
+            // Validate keys format using SecurityValidator
+            SecurityValidator.validateWireGuardPrivateKey(privateKey).getOrElse { error ->
+                return Result.failure(ConfigParseException("Invalid PrivateKey: ${error.message}", error))
             }
             
-            if (!isValidBase64Key(publicKey)) {
-                return Result.failure(ConfigParseException("Invalid PublicKey format. Expected base64-encoded 32-byte key"))
+            SecurityValidator.validateWireGuardPublicKey(publicKey).getOrElse { error ->
+                return Result.failure(ConfigParseException("Invalid PublicKey: ${error.message}", error))
             }
             
-            if (presharedKey != null && !isValidBase64Key(presharedKey)) {
-                return Result.failure(ConfigParseException("Invalid PresharedKey format. Expected base64-encoded 32-byte key"))
+            if (presharedKey != null) {
+                SecurityValidator.validateWireGuardPresharedKey(presharedKey).getOrElse { error ->
+                    return Result.failure(ConfigParseException("Invalid PresharedKey: ${error.message}", error))
+                }
             }
             
             val config = WireGuardConfig(
@@ -138,18 +141,6 @@ object WireGuardConfigParser {
         }
     }
     
-    /**
-     * Validates if a string is a valid base64-encoded 32-byte key.
-     * WireGuard keys are 32 bytes, which encode to 44 base64 characters (with padding).
-     */
-    private fun isValidBase64Key(key: String): Boolean {
-        // WireGuard keys are 32 bytes = 44 base64 characters (including padding)
-        if (key.length != 44) return false
-        
-        // Check if it's valid base64
-        val base64Regex = "^[A-Za-z0-9+/]+=*$".toRegex()
-        return base64Regex.matches(key)
-    }
 }
 
 /**

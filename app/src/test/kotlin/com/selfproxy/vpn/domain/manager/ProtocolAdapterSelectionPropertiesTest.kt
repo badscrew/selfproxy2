@@ -226,6 +226,10 @@ class ProtocolAdapterSelectionPropertiesTest {
             override fun validateProfile(profile: ServerProfile): Result<Unit> {
                 return Result.success(Unit)
             }
+            
+            override suspend fun importConfiguration(configText: String): Result<ServerProfile> {
+                return Result.success(profile)
+            }
         }
     }
     
@@ -237,7 +241,7 @@ class ProtocolAdapterSelectionPropertiesTest {
             val port = Arb.int(1..65535).bind()
             
             val config = WireGuardConfig(
-                publicKey = "base64encodedpublickey==",
+                publicKey = com.selfproxy.vpn.TestKeys.VALID_PUBLIC_KEY,
                 allowedIPs = listOf("0.0.0.0/0"),
                 persistentKeepalive = null,
                 endpoint = "$hostname:$port",

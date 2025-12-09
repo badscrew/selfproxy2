@@ -1,6 +1,7 @@
 package com.selfproxy.vpn.data.config
 
 import com.selfproxy.vpn.data.model.*
+import com.selfproxy.vpn.domain.util.SecurityValidator
 import kotlinx.serialization.json.Json
 import java.net.URLDecoder
 
@@ -39,8 +40,9 @@ object VlessUriParser {
             val uuid = uri.userInfo
                 ?: return Result.failure(ConfigParseException("Missing UUID in VLESS URI"))
             
-            if (!isValidUuid(uuid)) {
-                return Result.failure(ConfigParseException("Invalid UUID format. Expected RFC 4122 compliant UUID"))
+            // Validate UUID using SecurityValidator
+            SecurityValidator.validateVlessUuid(uuid).getOrElse { error ->
+                return Result.failure(ConfigParseException("Invalid UUID: ${error.message}", error))
             }
             
             // Extract hostname and port
@@ -191,14 +193,6 @@ object VlessUriParser {
         } catch (e: Exception) {
             Result.failure(ConfigParseException("Failed to parse VLESS URI: ${e.message}", e))
         }
-    }
-    
-    /**
-     * Validates if a string is a valid UUID (RFC 4122).
-     */
-    private fun isValidUuid(uuid: String): Boolean {
-        val uuidRegex = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$".toRegex()
-        return uuidRegex.matches(uuid)
     }
     
     /**

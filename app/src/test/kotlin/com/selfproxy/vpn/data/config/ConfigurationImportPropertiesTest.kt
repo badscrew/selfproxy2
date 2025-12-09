@@ -1,12 +1,16 @@
 package com.selfproxy.vpn.data.config
 
+import com.selfproxy.vpn.TestKeys
 import com.selfproxy.vpn.domain.model.Protocol
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.*
 import io.kotest.property.checkAll
+import io.mockk.unmockkAll
 import kotlinx.coroutines.test.runTest
+import org.junit.After
+import org.junit.Before
 import org.junit.Test
 
 /**
@@ -16,6 +20,16 @@ import org.junit.Test
  * **Validates: Requirements 1.10**
  */
 class ConfigurationImportPropertiesTest {
+    
+    @Before
+    fun setup() {
+        TestKeys.mockAndroidBase64()
+    }
+    
+    @After
+    fun teardown() {
+        unmockkAll()
+    }
     
     @Test
     fun `property test - WireGuard configuration should be detected as WireGuard protocol`() = runTest {
@@ -158,13 +172,10 @@ class ConfigurationImportPropertiesTest {
          * Generates valid base64-encoded 32-byte keys (44 characters).
          */
         fun Arb.Companion.base64Key(): Arb<String> = arbitrary {
-            val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-            buildString {
-                repeat(43) {
-                    append(chars.random())
-                }
-                append('=') // Padding
-            }
+            // Generate 32 random bytes
+            val bytes = ByteArray(32) { byte().bind() }
+            // Encode to base64 using Java's encoder (will be 44 characters with padding)
+            java.util.Base64.getEncoder().encodeToString(bytes)
         }
         
         /**

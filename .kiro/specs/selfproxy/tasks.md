@@ -350,7 +350,7 @@
   - Implement QR code import on welcome
   - _Requirements: 1.9_
 
-- [ ] 29. Implement Security Features
+- [x] 29. Implement Security Features
   - Validate WireGuard key formats (base64, 32 bytes)
   - Validate VLESS UUID format (RFC 4122)
   - Implement certificate validation for VLESS TLS
