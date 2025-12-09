@@ -407,7 +407,7 @@
   - Design app theme colors
   - _Requirements: User experience_
 
-- [ ] 35. Configure ProGuard/R8
+- [x] 35. Configure ProGuard/R8
   - Add ProGuard rules for WireGuard library
   - Add ProGuard rules for Xray library
   - Add ProGuard rules for Room
