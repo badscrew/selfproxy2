@@ -70,8 +70,12 @@ class TunnelVpnService : VpnService() {
         // Intent actions
         const val ACTION_START_VPN = "com.selfproxy.vpn.START_VPN"
         const val ACTION_STOP_VPN = "com.selfproxy.vpn.STOP_VPN"
+        const val ACTION_UPDATE_NOTIFICATION = "UPDATE_NOTIFICATION"
         const val EXTRA_PROFILE_ID = "profile_id"
         const val EXTRA_PROTOCOL_ADAPTER = "protocol_adapter"
+        const val EXTRA_STATUS = "status"
+        const val EXTRA_PROFILE_NAME = "profile_name"
+        const val EXTRA_ADDITIONAL_INFO = "additional_info"
     }
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -99,15 +103,33 @@ class TunnelVpnService : VpnService() {
                 // Start VPN with provided configuration
                 // Note: In production, profile and adapter would be passed via dependency injection
                 // or retrieved from a connection manager
+                val notification = createNotification(
+                    "VPN Connecting...", 
+                    "Establishing connection",
+                    showDisconnectAction = false
+                )
+                startForeground(NOTIFICATION_ID, notification)
                 startVpnTunnel()
             }
             ACTION_STOP_VPN -> {
+                updateNotificationWithStatus("Disconnecting")
                 stopVpnTunnel()
                 stopSelf()
             }
+            ACTION_UPDATE_NOTIFICATION -> {
+                // Update notification with provided status and info
+                val status = intent.getStringExtra(EXTRA_STATUS) ?: "Unknown"
+                val profileName = intent.getStringExtra(EXTRA_PROFILE_NAME)
+                val additionalInfo = intent.getStringExtra(EXTRA_ADDITIONAL_INFO)
+                updateNotificationWithStatus(status, profileName, additionalInfo)
+            }
             else -> {
                 // Default: start foreground service with notification
-                val notification = createNotification("VPN Ready", "Waiting for connection")
+                val notification = createNotification(
+                    "VPN Ready", 
+                    "Waiting for connection",
+                    showDisconnectAction = false
+                )
                 startForeground(NOTIFICATION_ID, notification)
             }
         }
@@ -163,10 +185,9 @@ class TunnelVpnService : VpnService() {
                 return
             }
             
-            // Update notification
+            // Update notification with connection status
             val profileName = profile?.name ?: "VPN Server"
-            val notification = createNotification("VPN Connected", "Connected to $profileName")
-            startForeground(NOTIFICATION_ID, notification)
+            updateNotificationWithStatus("Connected", profileName)
             
             // Start packet routing
             startPacketRouting()
@@ -372,6 +393,9 @@ class TunnelVpnService : VpnService() {
     /**
      * Creates the notification channel for the VPN service.
      * Required for Android O and above.
+     * 
+     * Requirement 3.5: Notification channel for VPN service
+     * Requirement 11.9: Foreground service notification
      */
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -382,64 +406,140 @@ class TunnelVpnService : VpnService() {
             ).apply {
                 description = "Shows when VPN tunnel is active"
                 setShowBadge(false)
+                enableLights(false)
+                enableVibration(false)
+                setSound(null, null)
             }
             val manager = getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(channel)
+            
+            SanitizedLogger.d(TAG, "Notification channel created")
         }
     }
 
     /**
      * Creates a notification for the foreground service.
      * 
-     * Requirement 3.5: VPN key icon displayed in status bar
+     * Requirements:
+     * - 3.5: VPN key icon displayed in status bar
+     * - 11.9: Foreground service notification with connection status
      * 
      * @param title Notification title
      * @param text Notification text
+     * @param showDisconnectAction Whether to show the disconnect action button
      * @return Notification object
      */
-    private fun createNotification(title: String, text: String): Notification {
-        val intent = Intent(this, MainActivity::class.java)
+    private fun createNotification(
+        title: String, 
+        text: String,
+        showDisconnectAction: Boolean = true
+    ): Notification {
+        val intent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
         val pendingIntent = PendingIntent.getActivity(
             this,
             0,
             intent,
-            PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        val disconnectIntent = Intent(this, TunnelVpnService::class.java).apply {
-            action = ACTION_STOP_VPN
-        }
-        val disconnectPendingIntent = PendingIntent.getService(
-            this,
-            1,
-            disconnectIntent,
-            PendingIntent.FLAG_IMMUTABLE
-        )
-
-        return NotificationCompat.Builder(this, CHANNEL_ID)
+        val builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(title)
             .setContentText(text)
             .setSmallIcon(R.drawable.ic_vpn_key)
             .setOngoing(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setContentIntent(pendingIntent)
-            .addAction(
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+        
+        // Add disconnect action button if requested
+        if (showDisconnectAction) {
+            val disconnectIntent = Intent(this, TunnelVpnService::class.java).apply {
+                action = ACTION_STOP_VPN
+            }
+            val disconnectPendingIntent = PendingIntent.getService(
+                this,
+                1,
+                disconnectIntent,
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            )
+            
+            builder.addAction(
                 R.drawable.ic_vpn_key,
                 "Disconnect",
                 disconnectPendingIntent
             )
-            .build()
+        }
+
+        return builder.build()
     }
 
     /**
      * Updates the notification with new content.
      * 
+     * Requirement 11.9: Update notification on state changes
+     * 
      * @param title New notification title
      * @param text New notification text
+     * @param showDisconnectAction Whether to show the disconnect action button
      */
-    fun updateNotification(title: String, text: String) {
-        val notification = createNotification(title, text)
-        val manager = getSystemService(NotificationManager::class.java)
-        manager.notify(NOTIFICATION_ID, notification)
+    fun updateNotification(
+        title: String, 
+        text: String,
+        showDisconnectAction: Boolean = true
+    ) {
+        try {
+            val notification = createNotification(title, text, showDisconnectAction)
+            val manager = getSystemService(NotificationManager::class.java)
+            manager.notify(NOTIFICATION_ID, notification)
+            SanitizedLogger.d(TAG, "Notification updated: $title")
+        } catch (e: Exception) {
+            SanitizedLogger.e(TAG, "Error updating notification", e)
+        }
+    }
+    
+    /**
+     * Updates the notification with connection status.
+     * 
+     * Provides a convenient way to update notification based on connection state.
+     * 
+     * @param status The connection status (e.g., "Connected", "Connecting", "Disconnected")
+     * @param profileName Optional profile name to include in the notification
+     * @param additionalInfo Optional additional information (e.g., data transferred, duration)
+     */
+    fun updateNotificationWithStatus(
+        status: String,
+        profileName: String? = null,
+        additionalInfo: String? = null
+    ) {
+        val title = when (status.lowercase()) {
+            "connected" -> "VPN Connected"
+            "connecting" -> "VPN Connecting..."
+            "disconnecting" -> "VPN Disconnecting..."
+            "disconnected" -> "VPN Disconnected"
+            "reconnecting" -> "VPN Reconnecting..."
+            "error" -> "VPN Connection Error"
+            else -> "VPN $status"
+        }
+        
+        val text = buildString {
+            if (profileName != null) {
+                append(profileName)
+            }
+            if (additionalInfo != null) {
+                if (profileName != null) append(" • ")
+                append(additionalInfo)
+            }
+            if (profileName == null && additionalInfo == null) {
+                append("Tap to open")
+            }
+        }
+        
+        // Show disconnect button only when connected
+        val showDisconnect = status.lowercase() == "connected"
+        
+        updateNotification(title, text, showDisconnect)
     }
 }

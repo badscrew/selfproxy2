@@ -166,6 +166,12 @@ val appModule = module {
      */
     single { com.selfproxy.vpn.domain.manager.BatteryMonitor(androidContext()) }
     
+    /**
+     * Notification manager for updating VPN service notifications.
+     * Requirements: 3.5, 11.9
+     */
+    single { com.selfproxy.vpn.domain.manager.NotificationManager(androidContext(), get(), get()) }
+    
     // ========================================
     // ViewModels
     // ========================================

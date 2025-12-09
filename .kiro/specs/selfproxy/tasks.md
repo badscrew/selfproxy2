@@ -311,7 +311,7 @@
   - Show permission rationale to user
   - _Requirements: 3.4_
 
-- [-] 24. Implement Battery Optimization
+- [x] 24. Implement Battery Optimization
   - Request battery optimization exemption
   - Configure efficient keep-alive intervals
   - Implement doze mode handling
@@ -319,7 +319,7 @@
   - Optimize WireGuard persistent keepalive
   - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.7_
 
-- [ ] 25. Implement Notifications
+- [x] 25. Implement Notifications
   - Create notification channel
   - Design foreground service notification
   - Add connection status to notification
