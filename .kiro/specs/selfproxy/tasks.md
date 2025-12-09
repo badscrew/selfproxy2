@@ -29,7 +29,7 @@
   - **Property 1: Valid WireGuard Profile Acceptance**
   - **Validates: Requirements 1.2**
 
-- [ ] 2.2 Write property test for data model serialization
+- [x] 2.2 Write property test for data model serialization
   - **Property 2: Valid VLESS Profile Acceptance**
   - **Validates: Requirements 1.3**
 
