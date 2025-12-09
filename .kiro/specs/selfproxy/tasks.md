@@ -297,7 +297,7 @@
   - Add error handling and user feedback
   - _Requirements: All UI-related requirements_
 
-- [ ] 22. Implement Dependency Injection
+- [x] 22. Implement Dependency Injection
   - Set up Koin modules
   - Define dependencies for repositories
   - Define dependencies for adapters
