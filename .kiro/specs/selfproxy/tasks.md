@@ -158,7 +158,7 @@
   - Test self-exclusion logic
   - _Requirements: 5.7_
 
-- [ ] 11. Implement Auto-Reconnection Service
+- [x] 11. Implement Auto-Reconnection Service
   - Create AutoReconnectService class
   - Implement connection drop detection
   - Add exponential backoff logic (1s to 60s)
@@ -168,7 +168,7 @@
   - Handle manual disconnect (disable auto-reconnect)
   - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.8, 6.9, 6.10_
 
-- [ ] 11.1 Write unit tests for auto-reconnect logic
+- [x] 11.1 Write unit tests for auto-reconnect logic
   - Test exponential backoff calculation
   - Test reconnection attempt counting
   - Test manual disconnect handling

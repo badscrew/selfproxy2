@@ -40,6 +40,20 @@ class ConnectionManager(
     private var currentAdapter: ProtocolAdapter? = null
     private var currentProfileId: Long? = null
     
+    // Auto-reconnect service (will be set via setter injection to avoid circular dependency)
+    private var autoReconnectService: AutoReconnectService? = null
+    
+    /**
+     * Sets the auto-reconnect service.
+     * 
+     * Uses setter injection to avoid circular dependency.
+     * 
+     * @param service The auto-reconnect service
+     */
+    fun setAutoReconnectService(service: AutoReconnectService) {
+        this.autoReconnectService = service
+    }
+    
     /**
      * Connects to a VPN server using the specified profile.
      * 
@@ -92,6 +106,9 @@ class ConnectionManager(
                 
                 _connectionState.value = ConnectionState.Connected(connection)
                 
+                // Enable auto-reconnect for this profile
+                autoReconnectService?.enable(profileId)
+                
                 return Result.success(Unit)
             } else {
                 val error = connectionResult.exceptionOrNull()
@@ -111,15 +128,20 @@ class ConnectionManager(
      * Disconnects the current VPN connection.
      * 
      * Safely disconnects regardless of current state.
+     * Disables auto-reconnect when manually disconnecting.
      */
     suspend fun disconnect() {
         try {
+            // Disable auto-reconnect for manual disconnects
+            autoReconnectService?.disable()
+            
             currentAdapter?.disconnect()
             currentAdapter = null
             currentProfileId = null
             _connectionState.value = ConnectionState.Disconnected
         } catch (e: Exception) {
             // Always mark as disconnected even if disconnect fails
+            autoReconnectService?.disable()
             currentAdapter = null
             currentProfileId = null
             _connectionState.value = ConnectionState.Disconnected
