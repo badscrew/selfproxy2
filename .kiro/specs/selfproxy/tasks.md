@@ -33,7 +33,7 @@
   - **Property 2: Valid VLESS Profile Acceptance**
   - **Validates: Requirements 1.3**
 
-- [ ] 3. Implement Profile Repository
+- [x] 3. Implement Profile Repository
   - Create ProfileRepository interface
   - Implement ProfileRepositoryImpl with Room
   - Add CRUD operations (create, read, update, delete)
@@ -41,19 +41,19 @@
   - Add error handling with Result types
   - _Requirements: 1.4, 1.5, 1.7, 1.8_
 
-- [ ] 3.1 Write property test for profile repository
+- [x] 3.1 Write property test for profile repository
   - **Property 4: Profile Listing Completeness**
   - **Validates: Requirements 1.5**
 
-- [ ] 3.2 Write property test for profile repository
+- [x] 3.2 Write property test for profile repository
   - **Property 5: Profile Update Round-Trip**
   - **Validates: Requirements 1.7**
 
-- [ ] 3.3 Write property test for profile repository
+- [x] 3.3 Write property test for profile repository
   - **Property 6: Profile Deletion Completeness**
   - **Validates: Requirements 1.8**
 
-- [ ] 3.4 Write property test for profile validation
+- [x] 3.4 Write property test for profile validation
   - **Property 3: Profile Validation Rejects Incomplete Data**
   - **Validates: Requirements 1.4**
 
