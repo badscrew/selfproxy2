@@ -25,4 +25,24 @@ class Converters {
     fun toProtocol(value: String): Protocol {
         return Protocol.valueOf(value)
     }
+    
+    /**
+     * Converts Set<String> to comma-separated String for database storage.
+     */
+    @TypeConverter
+    fun fromStringSet(value: Set<String>): String {
+        return value.joinToString(",")
+    }
+    
+    /**
+     * Converts comma-separated String from database to Set<String>.
+     */
+    @TypeConverter
+    fun toStringSet(value: String): Set<String> {
+        return if (value.isEmpty()) {
+            emptySet()
+        } else {
+            value.split(",").toSet()
+        }
+    }
 }

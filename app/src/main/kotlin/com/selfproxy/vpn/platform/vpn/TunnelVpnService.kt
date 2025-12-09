@@ -133,6 +133,10 @@ class TunnelVpnService : VpnService() {
      * Starts the VPN tunnel with the current profile and adapter.
      * 
      * Creates the TUN interface, configures routing, and starts packet forwarding.
+     * 
+     * Requirements:
+     * - 5.5: Apply routing on VPN start
+     * - 5.6: Support dynamic routing updates
      */
     fun startVpnTunnel(
         profile: ServerProfile? = null,
@@ -210,6 +214,8 @@ class TunnelVpnService : VpnService() {
      * - 4.1, 4.2: Routes all TCP and UDP traffic
      * - 4.3, 4.7: Configures DNS to prevent leaks
      * - 4.8: Handles IPv6 (route or block)
+     * - 5.2: Exclude apps from VPN tunnel
+     * - 5.7: Automatically exclude VPN app itself
      * 
      * @param profile The server profile (used for protocol-specific MTU)
      * @param ipv6Enabled Whether to enable IPv6 routing

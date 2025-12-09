@@ -143,7 +143,7 @@
   - Test route configuration
   - _Requirements: 4.3, 4.7_
 
-- [ ] 10. Implement Per-App Routing
+- [x] 10. Implement Per-App Routing
   - Add app list retrieval with package manager
   - Implement app selection UI
   - Add VpnService.Builder app allow/disallow logic
@@ -152,7 +152,7 @@
   - Support dynamic routing updates
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9_
 
-- [ ] 10.1 Write unit tests for app routing
+- [x] 10.1 Write unit tests for app routing
   - Test app list filtering
   - Test routing configuration persistence
   - Test self-exclusion logic

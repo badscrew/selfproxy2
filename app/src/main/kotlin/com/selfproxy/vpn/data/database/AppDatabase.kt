@@ -7,6 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.selfproxy.vpn.data.model.AppRoutingConfig
 import com.selfproxy.vpn.data.model.ServerProfile
 
 /**
@@ -15,8 +16,8 @@ import com.selfproxy.vpn.data.model.ServerProfile
  * Contains all database entities and provides DAOs for data access.
  */
 @Database(
-    entities = [ServerProfile::class],
-    version = 1,
+    entities = [ServerProfile::class, AppRoutingConfig::class],
+    version = 2,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -26,6 +27,11 @@ abstract class AppDatabase : RoomDatabase() {
      * Provides access to profile operations.
      */
     abstract fun profileDao(): ProfileDao
+    
+    /**
+     * Provides access to app routing configuration operations.
+     */
+    abstract fun appRoutingDao(): AppRoutingDao
     
     companion object {
         private const val DATABASE_NAME = "selfproxy.db"
@@ -51,7 +57,7 @@ abstract class AppDatabase : RoomDatabase() {
                 AppDatabase::class.java,
                 DATABASE_NAME
             )
-                .addMigrations(/* Future migrations will be added here */)
+                .addMigrations(MIGRATION_1_2)
                 .fallbackToDestructiveMigration() // For development only - remove in production
                 .build()
         }
@@ -66,10 +72,25 @@ abstract class AppDatabase : RoomDatabase() {
 }
 
 /**
- * Migration from version 1 to version 2 (placeholder for future use).
+ * Migration from version 1 to version 2: Add app routing configuration table.
  */
 val MIGRATION_1_2 = object : Migration(1, 2) {
     override fun migrate(database: SupportSQLiteDatabase) {
-        // Future migration logic will be added here
+        // Create app_routing_config table
+        database.execSQL("""
+            CREATE TABLE IF NOT EXISTS app_routing_config (
+                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                profileId INTEGER,
+                routeAllApps INTEGER NOT NULL,
+                packageNames TEXT NOT NULL,
+                lastUpdated INTEGER NOT NULL
+            )
+        """.trimIndent())
+        
+        // Create index on profileId for faster lookups
+        database.execSQL("""
+            CREATE INDEX IF NOT EXISTS index_app_routing_config_profileId 
+            ON app_routing_config(profileId)
+        """.trimIndent())
     }
 }
