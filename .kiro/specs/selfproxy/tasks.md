@@ -111,7 +111,7 @@
   - Test TLS configuration
   - _Requirements: 3.2, 9.12_
 
-- [ ] 8. Implement Connection Manager
+- [x] 8. Implement Connection Manager
   - Create ConnectionManager class
   - Implement protocol adapter selection logic
   - Add connection state management with StateFlow
@@ -120,11 +120,11 @@
   - Integrate with Auto-Reconnect Service
   - _Requirements: 3.3, 3.6, 3.7_
 
-- [ ] 8.1 Write property test for protocol adapter selection
+- [x] 8.1 Write property test for protocol adapter selection
   - **Property 11: Protocol Adapter Selection**
   - **Validates: Requirements 3.3**
 
-- [ ] 8.2 Write property test for error messaging
+- [x] 8.2 Write property test for error messaging
   - **Property 12: Connection Error Messaging**
   - **Validates: Requirements 3.6**
 
