@@ -57,7 +57,7 @@
   - **Property 3: Profile Validation Rejects Incomplete Data**
   - **Validates: Requirements 1.4**
 
-- [ ] 4. Implement Credential Store with Android Keystore
+- [x] 4. Implement Credential Store with Android Keystore
   - Create CredentialStore interface
   - Implement Android Keystore integration
   - Add encryption/decryption for WireGuard keys
@@ -66,11 +66,11 @@
   - Use StrongBox when available
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.9, 2.10_
 
-- [ ] 4.1 Write property test for credential encryption
+- [x] 4.1 Write property test for credential encryption
   - **Property 8: Credential Encryption**
   - **Validates: Requirements 2.1, 2.3, 2.4**
 
-- [ ] 4.2 Write property test for credential deletion
+- [x] 4.2 Write property test for credential deletion
   - **Property 9: Credential Deletion on Profile Deletion**
   - **Validates: Requirements 2.5**
 
