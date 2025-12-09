@@ -189,14 +189,14 @@
   - Test statistics reset
   - _Requirements: 7.2, 7.3, 7.10_
 
-- [ ] 13. Implement Network Monitor
+- [x] 13. Implement Network Monitor
   - Create NetworkMonitor class using ConnectivityManager
   - Observe network state changes (WiFi ↔ Mobile)
   - Detect network availability
   - Trigger reconnection on network change
   - _Requirements: 6.5_
 
-- [ ] 14. Implement Configuration Import/Export
+- [x] 14. Implement Configuration Import/Export
   - Create WireGuard config parser (INI format)
   - Create VLESS URI parser (vless://)
   - Implement QR code scanning for WireGuard
@@ -205,11 +205,11 @@
   - Add protocol auto-detection
   - _Requirements: 1.10, 16.1, 16.2, 16.3, 16.4, 16.6, 16.7, 16.8, 16.10_
 
-- [ ] 14.1 Write property test for configuration import
+- [x] 14.1 Write property test for configuration import
   - **Property 7: Configuration Import Protocol Detection**
   - **Validates: Requirements 1.10**
 
-- [ ] 14.2 Write unit tests for config parsing
+- [x] 14.2 Write unit tests for config parsing
   - Test WireGuard INI parsing
   - Test VLESS URI parsing
   - Test invalid format handling
