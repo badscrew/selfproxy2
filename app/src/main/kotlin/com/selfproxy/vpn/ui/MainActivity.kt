@@ -13,6 +13,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.selfproxy.vpn.data.model.ServerProfile
 import com.selfproxy.vpn.domain.model.Protocol
 import com.selfproxy.vpn.ui.screens.ProfileFormScreen
@@ -47,6 +48,9 @@ class MainActivity : ComponentActivity() {
     private val settingsViewModel: com.selfproxy.vpn.ui.viewmodel.SettingsViewModel by viewModel()
     
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Install splash screen
+        installSplashScreen()
+        
         super.onCreate(savedInstanceState)
         
         // Register VPN permission launcher

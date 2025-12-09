@@ -1,4 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#6650a4</color>
+    <!-- App Icon Colors -->
+    <color name="ic_launcher_background">#1976D2</color>
+    
+    <!-- Brand Colors -->
+    <color name="selfproxy_blue">#1976D2</color>
+    <color name="selfproxy_blue_dark">#0D47A1</color>
+    <color name="selfproxy_blue_light">#42A5F5</color>
+    <color name="selfproxy_accent">#00BCD4</color>
+    
+    <!-- Status Colors -->
+    <color name="status_connected">#4CAF50</color>
+    <color name="status_disconnected">#9E9E9E</color>
+    <color name="status_connecting">#FF9800</color>
+    <color name="status_error">#F44336</color>
+    
+    <!-- Splash Screen -->
+    <color name="splash_background">#1976D2</color>
 </resources>
