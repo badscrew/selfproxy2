@@ -381,7 +381,7 @@
   - Verify test coverage meets targets
   - _Requirements: All_
 
-- [ ] 32. Create Server Setup Scripts
+- [x] 32. Create Server Setup Scripts
   - Write WireGuard setup script for Ubuntu
   - Write VLESS setup script for Ubuntu
   - Add key generation for WireGuard
