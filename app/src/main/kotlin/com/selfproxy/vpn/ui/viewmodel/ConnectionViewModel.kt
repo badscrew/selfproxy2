@@ -10,7 +10,10 @@ import com.selfproxy.vpn.domain.adapter.ProtocolAdapter
 import com.selfproxy.vpn.domain.manager.ConnectionException
 import com.selfproxy.vpn.domain.manager.ConnectionManager
 import com.selfproxy.vpn.domain.manager.TrafficMonitor
+import com.selfproxy.vpn.domain.manager.TrafficVerificationService
 import com.selfproxy.vpn.domain.model.ConnectionState
+import com.selfproxy.vpn.domain.model.TrafficVerificationResult
+import com.selfproxy.vpn.domain.model.VerificationState
 import com.selfproxy.vpn.domain.repository.ProfileRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -27,7 +30,8 @@ import kotlinx.coroutines.launch
 class ConnectionViewModel(
     private val connectionManager: ConnectionManager,
     private val trafficMonitor: TrafficMonitor,
-    private val profileRepository: ProfileRepository
+    private val profileRepository: ProfileRepository,
+    private val trafficVerificationService: TrafficVerificationService
 ) : ViewModel() {
     
     // Connection state from manager
@@ -65,6 +69,10 @@ class ConnectionViewModel(
     // Current error state
     private val _currentError = MutableStateFlow<ConnectionException?>(null)
     val currentError: StateFlow<ConnectionException?> = _currentError.asStateFlow()
+    
+    // Traffic verification state
+    private val _verificationState = MutableStateFlow<VerificationState>(VerificationState.Idle)
+    val verificationState: StateFlow<VerificationState> = _verificationState.asStateFlow()
     
     init {
         // Load current profile if connected
@@ -304,11 +312,55 @@ class ConnectionViewModel(
     }
     
     /**
+     * Verifies that traffic is being routed through the VPN.
+     * 
+     * Checks:
+     * - Current external IP address
+     * - Compares with VPN server IP
+     * - Detects DNS leaks
+     * 
+     * Requirements:
+     * - 8.9: IP address verification
+     * - 8.10: DNS leak detection
+     */
+    fun verifyTraffic() {
+        viewModelScope.launch {
+            _verificationState.value = VerificationState.Verifying
+            
+            try {
+                // Get expected VPN server IP from current profile
+                val expectedIp = _currentProfile.value?.hostname
+                
+                // Perform verification
+                val result = trafficVerificationService.verifyTraffic(expectedIp)
+                
+                _verificationState.value = VerificationState.Completed(result)
+            } catch (e: Exception) {
+                _verificationState.value = VerificationState.Error(
+                    e.message ?: "Verification failed"
+                )
+            }
+        }
+    }
+    
+    /**
+     * Clears the verification result.
+     */
+    fun clearVerificationResult() {
+        _verificationState.value = VerificationState.Idle
+    }
+    
+    /**
      * Loads the current profile from repository.
      */
     private suspend fun loadCurrentProfile(profileId: Long) {
         val profile = profileRepository.getProfile(profileId)
         _currentProfile.value = profile
+    }
+    
+    override fun onCleared() {
+        super.onCleared()
+        trafficVerificationService.cleanup()
     }
 }
 

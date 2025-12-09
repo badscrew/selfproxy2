@@ -21,8 +21,10 @@ import com.selfproxy.vpn.domain.adapter.ConnectionTestResult
 import com.selfproxy.vpn.domain.manager.ConnectionException
 import com.selfproxy.vpn.domain.model.ConnectionState
 import com.selfproxy.vpn.domain.model.Protocol
+import com.selfproxy.vpn.domain.model.VerificationState
 import com.selfproxy.vpn.ui.components.DiagnosticDialog
 import com.selfproxy.vpn.ui.components.ErrorDialog
+import com.selfproxy.vpn.ui.components.TrafficVerificationCard
 import com.selfproxy.vpn.ui.theme.*
 import java.text.DecimalFormat
 import kotlin.time.Duration.Companion.milliseconds
@@ -30,7 +32,7 @@ import kotlin.time.Duration.Companion.milliseconds
 /**
  * Main connection screen showing VPN status and controls.
  * 
- * Requirements: 3.4, 3.5, 7.1, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9
+ * Requirements: 3.4, 3.5, 7.1, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9, 8.9, 8.10
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,6 +43,7 @@ fun ConnectionScreen(
     testResult: ConnectionTestResult?,
     isTesting: Boolean,
     currentError: ConnectionException?,
+    verificationState: VerificationState = VerificationState.Idle,
     onConnect: (Long) -> Unit,
     onDisconnect: () -> Unit,
     onTestConnection: (Long) -> Unit,
@@ -48,6 +51,8 @@ fun ConnectionScreen(
     onClearTestResult: () -> Unit,
     onClearError: () -> Unit,
     onExportDiagnostics: () -> Unit,
+    onVerifyTraffic: () -> Unit = {},
+    onClearVerification: () -> Unit = {},
     onSelectProfile: () -> Unit,
     onOpenSettings: () -> Unit = {},
     modifier: Modifier = Modifier,
@@ -120,6 +125,15 @@ fun ConnectionScreen(
                     isTesting = isTesting,
                     onTest = onTestConnection,
                     onClearResult = onClearTestResult
+                )
+            }
+            
+            // Traffic Verification Section (only when connected)
+            if (connectionState is ConnectionState.Connected) {
+                TrafficVerificationCard(
+                    verificationState = verificationState,
+                    onVerify = onVerifyTraffic,
+                    onDismiss = onClearVerification
                 )
             }
             

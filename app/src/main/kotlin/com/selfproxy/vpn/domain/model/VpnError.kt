@@ -121,7 +121,7 @@ sealed class VpnError {
             val durationSeconds: Int,
             val stage: String = "connection"
         ) : Timeout() {
-            override val message = "Connection timeout after ${durationSeconds}s during $stage"
+            override val message = "Connection timeout after ${durationSeconds}s during $stage. Check firewall settings."
             override val diagnosticInfo = mapOf(
                 "error_type" to "timeout",
                 "protocol" to protocol.name,

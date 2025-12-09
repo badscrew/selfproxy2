@@ -8,6 +8,7 @@ import com.selfproxy.vpn.domain.manager.AutoReconnectService
 import com.selfproxy.vpn.domain.manager.ConnectionManager
 import com.selfproxy.vpn.domain.manager.NetworkMonitor
 import com.selfproxy.vpn.domain.manager.TrafficMonitor
+import com.selfproxy.vpn.domain.manager.TrafficVerificationService
 import com.selfproxy.vpn.domain.repository.CredentialStore
 import com.selfproxy.vpn.domain.repository.ProfileRepository
 import com.selfproxy.vpn.platform.security.AndroidCredentialStore
@@ -136,6 +137,12 @@ val appModule = module {
     single { TrafficMonitor() }
     
     /**
+     * Traffic verification service for IP and DNS leak detection.
+     * Requirements: 8.9, 8.10
+     */
+    single { TrafficVerificationService() }
+    
+    /**
      * Connection manager for VPN connections.
      * Requirements: 3.3, 3.6, 3.7, 11.1, 11.3, 11.5
      * 
@@ -184,9 +191,9 @@ val appModule = module {
     
     /**
      * Connection screen ViewModel.
-     * Requirements: 3.5, 7.1, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9
+     * Requirements: 3.5, 7.1, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9, 8.9, 8.10
      */
-    viewModel { ConnectionViewModel(get(), get(), get()) }
+    viewModel { ConnectionViewModel(get(), get(), get(), get()) }
     
     /**
      * Settings screen ViewModel.

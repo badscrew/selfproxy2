@@ -1,5 +1,6 @@
 package com.selfproxy.vpn.domain.manager
 
+import com.selfproxy.vpn.TestKeys
 import com.selfproxy.vpn.data.model.ServerProfile
 import com.selfproxy.vpn.data.model.VlessConfig
 import com.selfproxy.vpn.data.model.WireGuardConfig
@@ -12,17 +13,14 @@ import com.selfproxy.vpn.domain.model.Protocol
 import com.selfproxy.vpn.domain.repository.ProfileRepository
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
-import io.kotest.property.arbitrary.arbitrary
-import io.kotest.property.arbitrary.enum
-import io.kotest.property.arbitrary.int
-import io.kotest.property.arbitrary.long
-import io.kotest.property.arbitrary.string
+import io.kotest.property.arbitrary.*
 import io.kotest.property.checkAll
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.test.runTest
+import org.junit.Before
 import org.junit.Test
 
 /**
@@ -32,6 +30,12 @@ import org.junit.Test
  * Validates: Requirements 3.3
  */
 class ProtocolAdapterSelectionPropertiesTest {
+    
+    @Before
+    fun setup() {
+        // Mock Android Base64
+        TestKeys.mockAndroidBase64()
+    }
     
     @Test
     fun `protocol adapter selection should use WireGuard adapter for WireGuard profiles`() = runTest {
@@ -236,8 +240,8 @@ class ProtocolAdapterSelectionPropertiesTest {
     companion object {
         fun Arb.Companion.wireGuardProfile(): Arb<ServerProfile> = arbitrary {
             val id = Arb.long(1L..1000L).bind()
-            val name = Arb.string(5..20).bind()
-            val hostname = Arb.string(5..15).bind() + ".com"
+            val name = Arb.string(5..20, Codepoint.alphanumeric()).bind()
+            val hostname = Arb.string(5..15, Codepoint.alphanumeric()).bind().lowercase() + ".com"
             val port = Arb.int(1..65535).bind()
             
             val config = WireGuardConfig(
@@ -259,8 +263,8 @@ class ProtocolAdapterSelectionPropertiesTest {
         
         fun Arb.Companion.vlessProfile(): Arb<ServerProfile> = arbitrary {
             val id = Arb.long(1L..1000L).bind()
-            val name = Arb.string(5..20).bind()
-            val hostname = Arb.string(5..15).bind() + ".com"
+            val name = Arb.string(5..20, Codepoint.alphanumeric()).bind()
+            val hostname = Arb.string(5..15, Codepoint.alphanumeric()).bind().lowercase() + ".com"
             val port = Arb.int(1..65535).bind()
             
             val config = VlessConfig(

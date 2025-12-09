@@ -2,6 +2,7 @@ package com.selfproxy.vpn.platform.vpn
 
 import com.selfproxy.vpn.TestKeys
 import com.selfproxy.vpn.data.model.WireGuardConfig
+import org.junit.Before
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -15,6 +16,12 @@ import kotlin.test.assertTrue
  * Requirements: 4.3, 4.7
  */
 class TunnelVpnServiceConfigTest {
+    
+    @Before
+    fun setup() {
+        // Mock Android Base64
+        TestKeys.mockAndroidBase64()
+    }
 
     @Test
     fun `Service intent actions should be correctly defined`() {

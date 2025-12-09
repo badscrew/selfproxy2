@@ -1,5 +1,6 @@
 package com.selfproxy.vpn.domain.manager
 
+import com.selfproxy.vpn.TestKeys
 import com.selfproxy.vpn.data.model.ServerProfile
 import com.selfproxy.vpn.data.model.VlessConfig
 import com.selfproxy.vpn.data.model.WireGuardConfig
@@ -16,18 +17,13 @@ import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotBeBlank
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.property.Arb
-import io.kotest.property.arbitrary.arbitrary
-import io.kotest.property.arbitrary.choice
-import io.kotest.property.arbitrary.constant
-import io.kotest.property.arbitrary.enum
-import io.kotest.property.arbitrary.int
-import io.kotest.property.arbitrary.long
-import io.kotest.property.arbitrary.string
+import io.kotest.property.arbitrary.*
 import io.kotest.property.checkAll
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
+import org.junit.Before
 import org.junit.Test
 
 /**
@@ -37,6 +33,12 @@ import org.junit.Test
  * Validates: Requirements 3.6
  */
 class ConnectionErrorMessagingPropertiesTest {
+    
+    @Before
+    fun setup() {
+        // Mock Android Base64
+        TestKeys.mockAndroidBase64()
+    }
     
     @Test
     fun `connection errors should always provide specific error messages`() = runTest {
@@ -277,7 +279,7 @@ class ConnectionErrorMessagingPropertiesTest {
                 val errorMessage = when (errorType) {
                     ErrorType.AUTHENTICATION -> "Authentication failed: Invalid key format"
                     ErrorType.NETWORK_UNREACHABLE -> "Network unreachable: Cannot connect to server"
-                    ErrorType.TIMEOUT -> "Connection timeout: No response from server"
+                    ErrorType.TIMEOUT -> "Connection timeout: No response from server. Check firewall settings."
                     ErrorType.HANDSHAKE_FAILED -> "Handshake failed: No handshake received"
                     ErrorType.INVALID_CONFIGURATION -> "Invalid configuration: Missing required fields"
                     ErrorType.TLS_ERROR -> "TLS certificate validation failed"
@@ -413,8 +415,8 @@ class ConnectionErrorMessagingPropertiesTest {
         
         fun Arb.Companion.wireGuardProfile(): Arb<ServerProfile> = arbitrary {
             val id = Arb.long(1L..1000L).bind()
-            val name = Arb.string(5..20).bind()
-            val hostname = Arb.string(5..15).bind() + ".com"
+            val name = Arb.string(5..20, Codepoint.alphanumeric()).bind()
+            val hostname = Arb.string(5..15, Codepoint.alphanumeric()).bind().lowercase() + ".com"
             val port = Arb.int(1..65535).bind()
             
             val config = WireGuardConfig(
@@ -436,8 +438,8 @@ class ConnectionErrorMessagingPropertiesTest {
         
         fun Arb.Companion.vlessProfile(): Arb<ServerProfile> = arbitrary {
             val id = Arb.long(1L..1000L).bind()
-            val name = Arb.string(5..20).bind()
-            val hostname = Arb.string(5..15).bind() + ".com"
+            val name = Arb.string(5..20, Codepoint.alphanumeric()).bind()
+            val hostname = Arb.string(5..15, Codepoint.alphanumeric()).bind().lowercase() + ".com"
             val port = Arb.int(1..65535).bind()
             
             val config = VlessConfig(

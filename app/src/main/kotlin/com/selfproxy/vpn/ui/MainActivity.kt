@@ -144,6 +144,9 @@ fun ProfileManagementApp(
     val showPermissionRationale by connectionViewModel.showPermissionRationale.collectAsState()
     val currentError by connectionViewModel.currentError.collectAsState()
     
+    // Traffic verification state
+    val verificationState by connectionViewModel.verificationState.collectAsState()
+    
     val settings by settingsViewModel.settings.collectAsState()
     val validationErrors by settingsViewModel.validationErrors.collectAsState()
     val saveSuccess by settingsViewModel.saveSuccess.collectAsState()
@@ -218,6 +221,7 @@ fun ProfileManagementApp(
                 testResult = testResult,
                 isTesting = isTesting,
                 currentError = currentError,
+                verificationState = verificationState,
                 onConnect = { profileId ->
                     connectionViewModel.connect(profileId)
                 },
@@ -244,6 +248,12 @@ fun ProfileManagementApp(
                         // For now, just log it
                         android.util.Log.d("Diagnostics", report)
                     }
+                },
+                onVerifyTraffic = {
+                    connectionViewModel.verifyTraffic()
+                },
+                onClearVerification = {
+                    connectionViewModel.clearVerificationResult()
                 },
                 onSelectProfile = {
                     currentScreen = Screen.ProfileList
