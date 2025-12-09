@@ -106,7 +106,8 @@ dependencies {
     implementation("com.wireguard.android:tunnel:1.0.20230706")
 
     // VLESS (Xray-core integration)
-    implementation("io.github.2dust:AndroidLibXrayLite:1.8.5")
+    // TODO: Find correct version or alternative library
+    // implementation("com.github.2dust:AndroidLibXrayLite:1.8.5")
 
     // Networking
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
@@ -118,6 +119,7 @@ dependencies {
 
     // Testing
     testImplementation("junit:junit:4.13.2")
+    testImplementation("org.jetbrains.kotlin:kotlin-test:1.9.22")
     testImplementation("io.kotest:kotest-runner-junit5:5.8.0")
     testImplementation("io.kotest:kotest-assertions-core:5.8.0")
     testImplementation("io.kotest:kotest-property:5.8.0")

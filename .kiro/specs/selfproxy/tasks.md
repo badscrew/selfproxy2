@@ -25,11 +25,11 @@
   - Set up Room database with migrations
   - _Requirements: 1.1, 1.2, 1.3_
 
-- [ ]* 2.1 Write property test for data model serialization
+- [x] 2.1 Write property test for data model serialization
   - **Property 1: Valid WireGuard Profile Acceptance**
   - **Validates: Requirements 1.2**
 
-- [ ]* 2.2 Write property test for data model serialization
+- [ ] 2.2 Write property test for data model serialization
   - **Property 2: Valid VLESS Profile Acceptance**
   - **Validates: Requirements 1.3**
 
@@ -41,19 +41,19 @@
   - Add error handling with Result types
   - _Requirements: 1.4, 1.5, 1.7, 1.8_
 
-- [ ]* 3.1 Write property test for profile repository
+- [ ] 3.1 Write property test for profile repository
   - **Property 4: Profile Listing Completeness**
   - **Validates: Requirements 1.5**
 
-- [ ]* 3.2 Write property test for profile repository
+- [ ] 3.2 Write property test for profile repository
   - **Property 5: Profile Update Round-Trip**
   - **Validates: Requirements 1.7**
 
-- [ ]* 3.3 Write property test for profile repository
+- [ ] 3.3 Write property test for profile repository
   - **Property 6: Profile Deletion Completeness**
   - **Validates: Requirements 1.8**
 
-- [ ]* 3.4 Write property test for profile validation
+- [ ] 3.4 Write property test for profile validation
   - **Property 3: Profile Validation Rejects Incomplete Data**
   - **Validates: Requirements 1.4**
 
@@ -66,11 +66,11 @@
   - Use StrongBox when available
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.9, 2.10_
 
-- [ ]* 4.1 Write property test for credential encryption
+- [ ] 4.1 Write property test for credential encryption
   - **Property 8: Credential Encryption**
   - **Validates: Requirements 2.1, 2.3, 2.4**
 
-- [ ]* 4.2 Write property test for credential deletion
+- [ ] 4.2 Write property test for credential deletion
   - **Property 9: Credential Deletion on Profile Deletion**
   - **Validates: Requirements 2.5**
 
@@ -90,7 +90,7 @@
   - Implement connection testing
   - _Requirements: 3.1, 3.9, 7.7, 9.1-9.8_
 
-- [ ]* 6.1 Write unit tests for WireGuard adapter
+- [ ] 6.1 Write unit tests for WireGuard adapter
   - Test key validation
   - Test endpoint parsing
   - Test configuration validation
@@ -105,7 +105,7 @@
   - Implement connection testing
   - _Requirements: 3.2, 3.10, 7.8, 9.9-9.15_
 
-- [ ]* 7.1 Write unit tests for VLESS adapter
+- [ ] 7.1 Write unit tests for VLESS adapter
   - Test UUID validation
   - Test transport protocol selection
   - Test TLS configuration
@@ -120,11 +120,11 @@
   - Integrate with Auto-Reconnect Service
   - _Requirements: 3.3, 3.6, 3.7_
 
-- [ ]* 8.1 Write property test for protocol adapter selection
+- [ ] 8.1 Write property test for protocol adapter selection
   - **Property 11: Protocol Adapter Selection**
   - **Validates: Requirements 3.3**
 
-- [ ]* 8.2 Write property test for error messaging
+- [ ] 8.2 Write property test for error messaging
   - **Property 12: Connection Error Messaging**
   - **Validates: Requirements 3.6**
 
@@ -137,7 +137,7 @@
   - Create foreground service with notification
   - _Requirements: 3.4, 3.5, 4.1, 4.2, 4.3, 4.7, 4.8_
 
-- [ ]* 9.1 Write unit tests for VPN service configuration
+- [ ] 9.1 Write unit tests for VPN service configuration
   - Test TUN interface builder configuration
   - Test DNS server configuration
   - Test route configuration
@@ -152,7 +152,7 @@
   - Support dynamic routing updates
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9_
 
-- [ ]* 10.1 Write unit tests for app routing
+- [ ] 10.1 Write unit tests for app routing
   - Test app list filtering
   - Test routing configuration persistence
   - Test self-exclusion logic
@@ -168,7 +168,7 @@
   - Handle manual disconnect (disable auto-reconnect)
   - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.8, 6.9, 6.10_
 
-- [ ]* 11.1 Write unit tests for auto-reconnect logic
+- [ ] 11.1 Write unit tests for auto-reconnect logic
   - Test exponential backoff calculation
   - Test reconnection attempt counting
   - Test manual disconnect handling
@@ -183,7 +183,7 @@
   - Add real-time statistics updates
   - _Requirements: 7.2, 7.3, 7.4, 7.5, 7.10_
 
-- [ ]* 12.1 Write unit tests for traffic monitoring
+- [ ] 12.1 Write unit tests for traffic monitoring
   - Test byte counting
   - Test speed calculation
   - Test statistics reset
@@ -205,11 +205,11 @@
   - Add protocol auto-detection
   - _Requirements: 1.10, 16.1, 16.2, 16.3, 16.4, 16.6, 16.7, 16.8, 16.10_
 
-- [ ]* 14.1 Write property test for configuration import
+- [ ] 14.1 Write property test for configuration import
   - **Property 7: Configuration Import Protocol Detection**
   - **Validates: Requirements 1.10**
 
-- [ ]* 14.2 Write unit tests for config parsing
+- [ ] 14.2 Write unit tests for config parsing
   - Test WireGuard INI parsing
   - Test VLESS URI parsing
   - Test invalid format handling
@@ -223,7 +223,7 @@
   - Display test results with error details
   - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 8.9, 8.10_
 
-- [ ]* 15.1 Write unit tests for connection testing
+- [ ] 15.1 Write unit tests for connection testing
   - Test timeout handling
   - Test error message generation
   - Test latency calculation
@@ -236,7 +236,7 @@
   - Add verbose logging toggle
   - _Requirements: 2.6, 12.8, 12.9, 12.10_
 
-- [ ]* 16.1 Write property test for log sanitization
+- [ ] 16.1 Write property test for log sanitization
   - **Property 10: Log Sanitization**
   - **Validates: Requirements 2.6**
 
@@ -250,7 +250,7 @@
   - Add delete confirmation dialog
   - _Requirements: 1.1, 1.2, 1.3, 1.5, 1.7, 1.8, 1.9_
 
-- [ ]* 17.1 Write UI tests for profile management
+- [ ] 17.1 Write UI tests for profile management
   - Test profile list display
   - Test profile creation flow
   - Test profile deletion
@@ -265,7 +265,7 @@
   - Add connection test button
   - _Requirements: 3.5, 7.1, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9_
 
-- [ ]* 18.1 Write UI tests for connection screen
+- [ ] 18.1 Write UI tests for connection screen
   - Test connection button states
   - Test statistics display
   - Test status updates
