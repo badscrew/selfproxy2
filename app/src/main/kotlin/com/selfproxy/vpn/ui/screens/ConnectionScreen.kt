@@ -43,6 +43,7 @@ fun ConnectionScreen(
     onResetStatistics: () -> Unit,
     onClearTestResult: () -> Unit,
     onSelectProfile: () -> Unit,
+    onOpenSettings: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Scaffold(
@@ -52,7 +53,16 @@ fun ConnectionScreen(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                ),
+                actions = {
+                    IconButton(onClick = onOpenSettings) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Settings",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
             )
         }
     ) { paddingValues ->

@@ -49,7 +49,8 @@ android {
         freeCompilerArgs += listOf(
             "-opt-in=kotlin.RequiresOptIn",
             "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
-            "-opt-in=kotlinx.coroutines.FlowPreview"
+            "-opt-in=kotlinx.coroutines.FlowPreview",
+            "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api"
         )
     }
 
@@ -98,6 +99,9 @@ dependencies {
     implementation("androidx.room:room-runtime:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
     ksp("androidx.room:room-compiler:$roomVersion")
+
+    // DataStore for Settings
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
 
     // Security
     implementation("androidx.security:security-crypto:1.1.0-alpha06")

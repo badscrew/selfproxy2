@@ -38,7 +38,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun ProfileManagementApp(
     profileViewModel: ProfileViewModel = koinViewModel(),
-    connectionViewModel: com.selfproxy.vpn.ui.viewmodel.ConnectionViewModel = koinViewModel()
+    connectionViewModel: com.selfproxy.vpn.ui.viewmodel.ConnectionViewModel = koinViewModel(),
+    settingsViewModel: com.selfproxy.vpn.ui.viewmodel.SettingsViewModel = koinViewModel()
 ) {
     val profiles by profileViewModel.filteredProfiles.collectAsState()
     val connectionState by connectionViewModel.connectionState.collectAsState()
@@ -46,6 +47,10 @@ fun ProfileManagementApp(
     val statistics by connectionViewModel.statistics.collectAsState()
     val testResult by connectionViewModel.testResult.collectAsState()
     val isTesting by connectionViewModel.isTesting.collectAsState()
+    
+    val settings by settingsViewModel.settings.collectAsState()
+    val validationErrors by settingsViewModel.validationErrors.collectAsState()
+    val saveSuccess by settingsViewModel.saveSuccess.collectAsState()
     
     var currentScreen by remember { mutableStateOf<Screen>(Screen.Connection) }
     var profileToEdit by remember { mutableStateOf<ServerProfile?>(null) }
@@ -75,6 +80,9 @@ fun ProfileManagementApp(
                 },
                 onSelectProfile = {
                     currentScreen = Screen.ProfileList
+                },
+                onOpenSettings = {
+                    currentScreen = Screen.Settings
                 }
             )
         }
@@ -113,6 +121,28 @@ fun ProfileManagementApp(
                 }
             )
         }
+        is Screen.Settings -> {
+            com.selfproxy.vpn.ui.screens.SettingsScreen(
+                settings = settings,
+                validationErrors = validationErrors,
+                saveSuccess = saveSuccess,
+                onUpdateSettings = { newSettings ->
+                    settingsViewModel.updateSettings { newSettings }
+                },
+                onSaveSettings = {
+                    settingsViewModel.saveSettings()
+                },
+                onResetToDefaults = {
+                    settingsViewModel.resetToDefaults()
+                },
+                onClearSaveSuccess = {
+                    settingsViewModel.clearSaveSuccess()
+                },
+                onNavigateBack = {
+                    currentScreen = Screen.Connection
+                }
+            )
+        }
     }
 }
 
@@ -120,4 +150,5 @@ sealed class Screen {
     object Connection : Screen()
     object ProfileList : Screen()
     object ProfileForm : Screen()
+    object Settings : Screen()
 }

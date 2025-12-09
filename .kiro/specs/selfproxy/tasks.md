@@ -271,7 +271,7 @@
   - Test status updates
   - _Requirements: 7.1, 7.9_
 
-- [ ] 19. Create Settings Screen UI
+- [x] 19. Create Settings Screen UI
   - Design settings screen with Compose
   - Add DNS configuration options
   - Add IPv6 enable/disable toggle
