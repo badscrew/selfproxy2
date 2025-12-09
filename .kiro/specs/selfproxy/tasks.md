@@ -96,7 +96,7 @@
   - Test configuration validation
   - _Requirements: 3.1, 9.4_
 
-- [ ] 7. Implement VLESS Protocol Adapter
+- [x] 7. Implement VLESS Protocol Adapter
   - Create VlessAdapter implementing ProtocolAdapter
   - Integrate AndroidLibXrayLite library
   - Implement connection establishment with UUID auth
@@ -105,7 +105,7 @@
   - Implement connection testing
   - _Requirements: 3.2, 3.10, 7.8, 9.9-9.15_
 
-- [ ] 7.1 Write unit tests for VLESS adapter
+- [x] 7.1 Write unit tests for VLESS adapter
   - Test UUID validation
   - Test transport protocol selection
   - Test TLS configuration
