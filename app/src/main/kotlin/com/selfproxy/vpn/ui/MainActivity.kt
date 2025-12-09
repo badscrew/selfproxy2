@@ -37,13 +37,47 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun ProfileManagementApp(
-    viewModel: ProfileViewModel = koinViewModel()
+    profileViewModel: ProfileViewModel = koinViewModel(),
+    connectionViewModel: com.selfproxy.vpn.ui.viewmodel.ConnectionViewModel = koinViewModel()
 ) {
-    val profiles by viewModel.filteredProfiles.collectAsState()
-    var currentScreen by remember { mutableStateOf<Screen>(Screen.ProfileList) }
+    val profiles by profileViewModel.filteredProfiles.collectAsState()
+    val connectionState by connectionViewModel.connectionState.collectAsState()
+    val currentProfile by connectionViewModel.currentProfile.collectAsState()
+    val statistics by connectionViewModel.statistics.collectAsState()
+    val testResult by connectionViewModel.testResult.collectAsState()
+    val isTesting by connectionViewModel.isTesting.collectAsState()
+    
+    var currentScreen by remember { mutableStateOf<Screen>(Screen.Connection) }
     var profileToEdit by remember { mutableStateOf<ServerProfile?>(null) }
     
     when (val screen = currentScreen) {
+        is Screen.Connection -> {
+            com.selfproxy.vpn.ui.screens.ConnectionScreen(
+                connectionState = connectionState,
+                currentProfile = currentProfile,
+                statistics = statistics,
+                testResult = testResult,
+                isTesting = isTesting,
+                onConnect = { profileId ->
+                    connectionViewModel.connect(profileId)
+                },
+                onDisconnect = {
+                    connectionViewModel.disconnect()
+                },
+                onTestConnection = { profileId ->
+                    connectionViewModel.testConnection(profileId)
+                },
+                onResetStatistics = {
+                    connectionViewModel.resetStatistics()
+                },
+                onClearTestResult = {
+                    connectionViewModel.clearTestResult()
+                },
+                onSelectProfile = {
+                    currentScreen = Screen.ProfileList
+                }
+            )
+        }
         is Screen.ProfileList -> {
             ProfileListScreen(
                 profiles = profiles,
@@ -56,7 +90,10 @@ fun ProfileManagementApp(
                     currentScreen = Screen.ProfileForm
                 },
                 onDeleteProfile = { profile ->
-                    viewModel.deleteProfile(profile.id)
+                    profileViewModel.deleteProfile(profile.id)
+                },
+                onNavigateToConnection = {
+                    currentScreen = Screen.Connection
                 }
             )
         }
@@ -65,9 +102,9 @@ fun ProfileManagementApp(
                 profile = profileToEdit,
                 onSave = { profile ->
                     if (profile.id == 0L) {
-                        viewModel.createProfile(profile)
+                        profileViewModel.createProfile(profile)
                     } else {
-                        viewModel.updateProfile(profile)
+                        profileViewModel.updateProfile(profile)
                     }
                     currentScreen = Screen.ProfileList
                 },
@@ -80,6 +117,7 @@ fun ProfileManagementApp(
 }
 
 sealed class Screen {
+    object Connection : Screen()
     object ProfileList : Screen()
     object ProfileForm : Screen()
 }

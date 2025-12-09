@@ -31,6 +31,7 @@ fun ProfileListScreen(
     onProfileClick: (ServerProfile) -> Unit,
     onAddProfile: () -> Unit,
     onDeleteProfile: (ServerProfile) -> Unit,
+    onNavigateToConnection: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var profileToDelete by remember { mutableStateOf<ServerProfile?>(null) }
@@ -39,6 +40,11 @@ fun ProfileListScreen(
         topBar = {
             TopAppBar(
                 title = { Text("VPN Profiles") },
+                actions = {
+                    TextButton(onClick = onNavigateToConnection) {
+                        Text("Connection")
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer

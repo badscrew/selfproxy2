@@ -256,7 +256,7 @@
   - Test profile deletion
   - _Requirements: 1.5, 1.8_
 
-- [ ] 18. Create Connection Screen UI
+- [x] 18. Create Connection Screen UI
   - Design main connection screen with Compose
   - Add connect/disconnect button
   - Display connection status
@@ -265,7 +265,7 @@
   - Add connection test button
   - _Requirements: 3.5, 7.1, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9_
 
-- [ ] 18.1 Write UI tests for connection screen
+- [x] 18.1 Write UI tests for connection screen
   - Test connection button states
   - Test statistics display
   - Test status updates
