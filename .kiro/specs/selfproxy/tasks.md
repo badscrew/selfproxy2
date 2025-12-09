@@ -373,7 +373,7 @@
   - Show verification results
   - _Requirements: 8.9, 8.10_
 
-- [ ] 31. Checkpoint - Ensure all tests pass
+- [x] 31. Checkpoint - Ensure all tests pass
   - Run all unit tests
   - Run all property tests
   - Run all UI tests
