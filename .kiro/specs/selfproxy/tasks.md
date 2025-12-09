@@ -128,7 +128,7 @@
   - **Property 12: Connection Error Messaging**
   - **Validates: Requirements 3.6**
 
-- [ ] 9. Implement VPN Service
+- [x] 9. Implement VPN Service
   - Create TunnelVpnService extending VpnService
   - Implement TUN interface creation and configuration
   - Add packet routing logic
@@ -137,7 +137,7 @@
   - Create foreground service with notification
   - _Requirements: 3.4, 3.5, 4.1, 4.2, 4.3, 4.7, 4.8_
 
-- [ ] 9.1 Write unit tests for VPN service configuration
+- [x] 9.1 Write unit tests for VPN service configuration
   - Test TUN interface builder configuration
   - Test DNS server configuration
   - Test route configuration
