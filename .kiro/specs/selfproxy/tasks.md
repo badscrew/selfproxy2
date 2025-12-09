@@ -174,7 +174,7 @@
   - Test manual disconnect handling
   - _Requirements: 6.3, 6.10_
 
-- [ ] 12. Implement Traffic Monitor
+- [x] 12. Implement Traffic Monitor
   - Create TrafficMonitor class
   - Track bytes sent/received from TUN interface
   - Calculate upload/download speeds
@@ -183,7 +183,7 @@
   - Add real-time statistics updates
   - _Requirements: 7.2, 7.3, 7.4, 7.5, 7.10_
 
-- [ ] 12.1 Write unit tests for traffic monitoring
+- [x] 12.1 Write unit tests for traffic monitoring
   - Test byte counting
   - Test speed calculation
   - Test statistics reset
