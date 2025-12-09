@@ -1,5 +1,7 @@
 package com.selfproxy.vpn.di
 
+import com.selfproxy.vpn.data.database.AppDatabase
+import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
 /**
@@ -7,7 +9,11 @@ import org.koin.dsl.module
  * Defines all dependencies and their lifecycles.
  */
 val appModule = module {
-    // TODO: Add dependencies as they are implemented
+    // Database
+    single { AppDatabase.getInstance(androidContext()) }
+    single { get<AppDatabase>().profileDao() }
+    
+    // TODO: Add more dependencies as they are implemented
     // Example:
     // single<ProfileRepository> { ProfileRepositoryImpl(get()) }
     // viewModel { ConnectionViewModel(get()) }

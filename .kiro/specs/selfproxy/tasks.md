@@ -5,13 +5,18 @@
 
 
 
+
   - Create new Android project with Kotlin and Jetpack Compose
   - Configure Gradle build files with required dependencies
   - Set up project package structure (ui, domain, data, platform)
   - Configure ProGuard/R8 rules for release builds
   - _Requirements: Foundation for all requirements_
 
-- [ ] 2. Define data models and database schema
+- [x] 2. Define data models and database schema
+
+
+
+
   - Create ServerProfile, WireGuardConfig, VlessConfig data classes
   - Create Protocol, FlowControl, TransportProtocol enums
   - Define Room entities for server profiles
