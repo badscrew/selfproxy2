@@ -81,7 +81,7 @@
   - Create ConnectionTestResult data class
   - _Requirements: 3.3_
 
-- [ ] 6. Implement WireGuard Protocol Adapter
+- [x] 6. Implement WireGuard Protocol Adapter
   - Create WireGuardAdapter implementing ProtocolAdapter
   - Integrate wireguard-android library
   - Implement connection establishment with handshake
@@ -90,7 +90,7 @@
   - Implement connection testing
   - _Requirements: 3.1, 3.9, 7.7, 9.1-9.8_
 
-- [ ] 6.1 Write unit tests for WireGuard adapter
+- [x] 6.1 Write unit tests for WireGuard adapter
   - Test key validation
   - Test endpoint parsing
   - Test configuration validation
