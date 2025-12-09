@@ -357,6 +357,15 @@
   - Add preshared key support for WireGuard
   - _Requirements: 9.1-9.15_
 
+- [ ] 29.1 Fix remaining test failures from security validation
+  - Update ConnectionTestingTest to use TestKeys and add Base64 mocking
+  - Update domain manager property tests to use TestKeys
+  - Update ProfileValidationPropertiesTest to use TestKeys
+  - Update AppRoutingRepositoryTest to use TestKeys
+  - Ensure all test files that create WireGuard configs use valid keys
+  - Target: All 221 tests passing (currently 34 failures remaining)
+  - _Requirements: Test infrastructure_
+
 - [ ] 30. Add Traffic Verification
   - Implement IP address check via external service
   - Display current IP and VPN server IP
