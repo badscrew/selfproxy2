@@ -304,6 +304,22 @@ fun ProfileManagementApp(
                 },
                 onNavigateToConnection = {
                     currentScreen = Screen.Connection
+                },
+                onConnectProfile = { profile ->
+                    // Connect to the selected profile and navigate to connection screen
+                    connectionViewModel.connect(profile.id)
+                    currentScreen = Screen.Connection
+                },
+                onCopyProfile = { profile ->
+                    // Create a copy of the profile for editing
+                    val copiedProfile = profile.copy(
+                        id = 0, // New profile gets ID 0
+                        name = "${profile.name} (Copy)",
+                        createdAt = System.currentTimeMillis(),
+                        lastUsed = null
+                    )
+                    profileToEdit = copiedProfile
+                    currentScreen = Screen.ProfileForm
                 }
             )
         }

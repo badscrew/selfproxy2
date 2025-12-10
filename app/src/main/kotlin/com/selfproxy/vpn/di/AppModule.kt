@@ -66,7 +66,7 @@ val appModule = module {
      * Profile repository for managing server profiles.
      * Requirements: 1.4, 1.5, 1.7, 1.8
      */
-    single<ProfileRepository> { ProfileRepositoryImpl(get()) }
+    single<ProfileRepository> { ProfileRepositoryImpl(get(), get()) }
     
     /**
      * Settings repository for app configuration.

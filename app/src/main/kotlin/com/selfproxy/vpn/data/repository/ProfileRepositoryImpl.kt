@@ -12,7 +12,8 @@ import kotlinx.coroutines.flow.Flow
  * Provides CRUD operations with validation and error handling.
  */
 class ProfileRepositoryImpl(
-    private val profileDao: ProfileDao
+    private val profileDao: ProfileDao,
+    private val credentialStore: com.selfproxy.vpn.domain.repository.CredentialStore
 ) : ProfileRepository {
     
     override suspend fun createProfile(profile: ServerProfile): Result<Long> {
@@ -22,6 +23,20 @@ class ProfileRepositoryImpl(
             
             // Insert profile
             val id = profileDao.insert(profile)
+            
+            // Generate and store credentials for WireGuard profiles
+            if (profile.protocol == Protocol.WIREGUARD) {
+                val keyPair = com.selfproxy.vpn.domain.util.WireGuardKeyGenerator.generateKeyPair()
+                val privateKey = keyPair.first
+                
+                // Store the private key in credential store
+                credentialStore.storeWireGuardPrivateKey(id, privateKey).getOrElse { error ->
+                    // If credential storage fails, delete the profile and return error
+                    profileDao.deleteById(id)
+                    throw ProfileCreationException("Failed to store private key: ${error.message}", error)
+                }
+            }
+            
             Result.success(id)
         } catch (e: IllegalArgumentException) {
             Result.failure(ProfileValidationException(e.message ?: "Invalid profile", e))

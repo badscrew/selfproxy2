@@ -68,6 +68,15 @@ fun ConnectionScreen(
         topBar = {
             TopAppBar(
                 title = { Text("VPN Connection") },
+                navigationIcon = {
+                    IconButton(onClick = onSelectProfile) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Back to Profiles",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -342,7 +351,55 @@ private fun ConnectionButton(
                 )
             }
         }
+        is ConnectionState.Error -> {
+            // Error state - show retry and select different profile options
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                if (currentProfile != null) {
+                    // Retry button
+                    Button(
+                        onClick = { onConnect(currentProfile.id) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = ConnectedGreen
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Retry Connection", style = MaterialTheme.typography.titleMedium)
+                    }
+                }
+                
+                // Select different profile button
+                OutlinedButton(
+                    onClick = onSelectProfile,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.List,
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = if (currentProfile != null) "Select Different Profile" else "Select Profile",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+            }
+        }
         else -> {
+            // Disconnected state
             if (currentProfile != null) {
                 Button(
                     onClick = { onConnect(currentProfile.id) },
