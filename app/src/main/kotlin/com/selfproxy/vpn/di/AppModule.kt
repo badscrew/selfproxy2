@@ -145,21 +145,29 @@ val appModule = module {
     /**
      * Connection manager for VPN connections.
      * Requirements: 3.3, 3.6, 3.7, 11.1, 11.3, 11.5
-     * 
-     * Note: Uses setter injection for AutoReconnectService to avoid circular dependency.
      */
     single { 
-        ConnectionManager(get(), get(), get(), get()).apply {
-            // Set auto-reconnect service after creation to avoid circular dependency
-            setAutoReconnectService(get())
-        }
+        ConnectionManager(
+            wireGuardAdapter = get<WireGuardAdapter>(),
+            vlessAdapter = get<VlessAdapter>(),
+            profileRepository = get(),
+            batteryOptimizationManager = get()
+        )
     }
     
     /**
      * Auto-reconnect service for handling connection drops.
      * Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.8, 6.9, 6.10
+     * 
+     * Note: Creates the service and sets up the bidirectional relationship with ConnectionManager.
      */
-    single { AutoReconnectService(androidContext(), get()) }
+    single { 
+        val connectionManager = get<ConnectionManager>()
+        AutoReconnectService(androidContext(), connectionManager).also { autoReconnectService ->
+            // Set up the bidirectional relationship
+            connectionManager.setAutoReconnectService(autoReconnectService)
+        }
+    }
     
     /**
      * Battery optimization manager for power management.
