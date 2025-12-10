@@ -27,8 +27,9 @@ chmod +x setup-wireguard.sh
 
 **For Amazon Linux 2023:**
 ```bash
-wget https://raw.githubusercontent.com/badscrew/selfproxy2/main/docs/server-setup/setup-wireguard-amazon.sh
-chmod +x setup-wireguard-amazon.sh
+# Clone repository to access Amazon Linux scripts
+git clone https://github.com/badscrew/selfproxy2.git
+cd selfproxy2/docs/server-setup
 ```
 
 ### 2. Run the script
@@ -40,6 +41,7 @@ sudo ./setup-wireguard.sh
 
 **For Amazon Linux 2023:**
 ```bash
+chmod +x setup-wireguard-amazon.sh
 sudo ./setup-wireguard-amazon.sh
 ```
 
@@ -97,8 +99,8 @@ chmod +x setup-vless.sh
 
 **For Amazon Linux 2023:**
 ```bash
-wget https://raw.githubusercontent.com/badscrew/selfproxy2/main/docs/server-setup/setup-vless-amazon.sh
-chmod +x setup-vless-amazon.sh
+# Use the same cloned repository from WireGuard setup above
+cd selfproxy2/docs/server-setup  # if not already there
 ```
 
 ### 3. Run the script
@@ -110,6 +112,7 @@ sudo ./setup-vless.sh
 
 **For Amazon Linux 2023:**
 ```bash
+chmod +x setup-vless-amazon.sh
 sudo ./setup-vless-amazon.sh
 ```
 

@@ -7,12 +7,14 @@ This directory contains automated setup scripts for deploying VPN servers that w
 ### WireGuard (Recommended)
 - **Best for**: Most users
 - **Advantages**: Fast, efficient, simple, excellent battery life
-- **Script**: `setup-wireguard.sh`
+- **Script**: `setup-wireguard.sh` (Ubuntu), `setup-wireguard-amazon.sh` (Amazon Linux)
 
 ### VLESS (Advanced)
 - **Best for**: Users requiring obfuscation in restrictive networks
 - **Advantages**: Multiple transports, TLS/Reality support, traffic obfuscation
-- **Script**: `setup-vless.sh`
+- **Script**: `setup-vless.sh` (Ubuntu), `setup-vless-amazon.sh` (Amazon Linux)
+
+> **Note**: Amazon Linux scripts are currently available by cloning the repository. Direct download URLs will be available once the latest changes are pushed to the main branch.
 
 ## Requirements
 
@@ -40,8 +42,10 @@ sudo ./setup-wireguard.sh
 
 **Amazon Linux 2023:**
 ```bash
-# Download and run the Amazon Linux script
-wget https://raw.githubusercontent.com/badscrew/selfproxy2/main/docs/server-setup/setup-wireguard-amazon.sh
+# Note: Amazon Linux scripts are currently in development
+# Clone the repository to access the latest scripts:
+git clone https://github.com/badscrew/selfproxy2.git
+cd selfproxy2/docs/server-setup
 chmod +x setup-wireguard-amazon.sh
 sudo ./setup-wireguard-amazon.sh
 ```
@@ -65,8 +69,10 @@ sudo ./setup-vless.sh
 
 **Amazon Linux 2023:**
 ```bash
-# Download and run the Amazon Linux script
-wget https://raw.githubusercontent.com/badscrew/selfproxy2/main/docs/server-setup/setup-vless-amazon.sh
+# Note: Amazon Linux scripts are currently in development
+# Clone the repository to access the latest scripts:
+git clone https://github.com/badscrew/selfproxy2.git
+cd selfproxy2/docs/server-setup
 chmod +x setup-vless-amazon.sh
 sudo ./setup-vless-amazon.sh
 ```
@@ -130,6 +136,22 @@ The script will:
 - **EPEL Repository**: Automatically installed for additional packages
 - **SELinux**: May require configuration for advanced setups
 - **Kernel Modules**: WireGuard kernel module included in Amazon Linux 2023
+
+### Alternative: Manual Script Creation
+
+If you prefer not to clone the repository, you can create the Amazon Linux scripts manually:
+
+**Create WireGuard script for Amazon Linux:**
+```bash
+curl -o setup-wireguard-amazon.sh https://gist.githubusercontent.com/[gist-id]/raw/setup-wireguard-amazon.sh
+# Or copy the script content from the repository and save as setup-wireguard-amazon.sh
+```
+
+**Create VLESS script for Amazon Linux:**
+```bash
+curl -o setup-vless-amazon.sh https://gist.githubusercontent.com/[gist-id]/raw/setup-vless-amazon.sh
+# Or copy the script content from the repository and save as setup-vless-amazon.sh
+```
 
 ## Firewall Configuration
 
