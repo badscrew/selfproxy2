@@ -98,7 +98,12 @@ class DiagnosticCollector(
                 val linkProperties = connectivityManager.getLinkProperties(activeNetwork)
                 if (linkProperties != null) {
                     put("network_interface", linkProperties.interfaceName ?: "unknown")
-                    put("network_mtu", linkProperties.mtu.toString())
+                    // MTU is only available on API 29+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        put("network_mtu", linkProperties.mtu.toString())
+                    } else {
+                        put("network_mtu", "unknown")
+                    }
                 }
             }
         }
@@ -218,7 +223,13 @@ class DiagnosticCollector(
     private fun getAppVersion(): String {
         return try {
             val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-            "${packageInfo.versionName} (${packageInfo.longVersionCode})"
+            val versionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                packageInfo.longVersionCode.toString()
+            } else {
+                @Suppress("DEPRECATION")
+                packageInfo.versionCode.toString()
+            }
+            "${packageInfo.versionName} ($versionCode)"
         } catch (e: Exception) {
             "unknown"
         }

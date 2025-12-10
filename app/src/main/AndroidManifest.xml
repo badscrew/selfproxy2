@@ -8,7 +8,8 @@
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     
     <!-- VPN Service Permission -->
-    <uses-permission android:name="android.permission.BIND_VPN_SERVICE" />
+    <uses-permission android:name="android.permission.BIND_VPN_SERVICE" 
+        tools:ignore="ProtectedPermissions" />
     
     <!-- Foreground Service Permission (Android 9+) -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
