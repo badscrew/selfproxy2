@@ -4,7 +4,11 @@ Get your VPN server running in minutes!
 
 ## Prerequisites
 
-- Ubuntu 20.04, 22.04, or 24.04 LTS server
+### Supported Systems
+- **Ubuntu**: 20.04, 22.04, or 24.04 LTS server
+- **Amazon Linux**: 2023 (RedHat-based)
+
+### Requirements
 - Root access (sudo)
 - Public IP address or domain name
 - Open firewall ports (scripts will configure automatically)
@@ -15,15 +19,28 @@ Get your VPN server running in minutes!
 
 ### 1. Download the script
 
+**For Ubuntu:**
 ```bash
 wget https://raw.githubusercontent.com/your-repo/selfproxy/main/docs/server-setup/setup-wireguard.sh
 chmod +x setup-wireguard.sh
 ```
 
+**For Amazon Linux 2023:**
+```bash
+wget https://raw.githubusercontent.com/your-repo/selfproxy/main/docs/server-setup/setup-wireguard-amazon.sh
+chmod +x setup-wireguard-amazon.sh
+```
+
 ### 2. Run the script
 
+**For Ubuntu:**
 ```bash
 sudo ./setup-wireguard.sh
+```
+
+**For Amazon Linux 2023:**
+```bash
+sudo ./setup-wireguard-amazon.sh
 ```
 
 ### 3. Follow the prompts
@@ -72,15 +89,28 @@ curl https://api.ipify.org
 
 ### 2. Download the script
 
+**For Ubuntu:**
 ```bash
 wget https://raw.githubusercontent.com/your-repo/selfproxy/main/docs/server-setup/setup-vless.sh
 chmod +x setup-vless.sh
 ```
 
+**For Amazon Linux 2023:**
+```bash
+wget https://raw.githubusercontent.com/your-repo/selfproxy/main/docs/server-setup/setup-vless-amazon.sh
+chmod +x setup-vless-amazon.sh
+```
+
 ### 3. Run the script
 
+**For Ubuntu:**
 ```bash
 sudo ./setup-vless.sh
+```
+
+**For Amazon Linux 2023:**
+```bash
+sudo ./setup-vless-amazon.sh
 ```
 
 ### 4. Follow the prompts
@@ -135,12 +165,24 @@ sudo systemctl restart wg-quick@wg0
 ```
 
 **Firewall issues?**
+
+*Ubuntu:*
 ```bash
 # Check firewall status
 sudo ufw status
 
 # Make sure WireGuard port is open
 sudo ufw allow 51820/udp
+```
+
+*Amazon Linux:*
+```bash
+# Check firewall status
+sudo firewall-cmd --list-all
+
+# Make sure WireGuard port is open
+sudo firewall-cmd --permanent --add-port=51820/udp
+sudo firewall-cmd --reload
 ```
 
 ### VLESS
@@ -170,6 +212,8 @@ dig +short vpn.example.com
 ```
 
 **Port not accessible?**
+
+*Ubuntu:*
 ```bash
 # Check if port is listening
 sudo netstat -tlnp | grep 443
@@ -179,6 +223,19 @@ sudo ufw status
 
 # Make sure port is open
 sudo ufw allow 443/tcp
+```
+
+*Amazon Linux:*
+```bash
+# Check if port is listening
+sudo netstat -tlnp | grep 443
+
+# Check firewall
+sudo firewall-cmd --list-all
+
+# Make sure port is open
+sudo firewall-cmd --permanent --add-port=443/tcp
+sudo firewall-cmd --reload
 ```
 
 ---

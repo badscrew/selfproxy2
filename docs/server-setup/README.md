@@ -16,7 +16,12 @@ This directory contains automated setup scripts for deploying VPN servers that w
 
 ## Requirements
 
-- Ubuntu 20.04, 22.04, or 24.04 LTS
+### Supported Operating Systems
+- **Ubuntu**: 20.04, 22.04, or 24.04 LTS
+- **Amazon Linux**: 2023 (RedHat-based)
+- **Amazon Linux 2**: Supported but not optimized
+
+### System Requirements
 - Root access or sudo privileges
 - Public IP address or domain name
 - Open firewall ports (configured automatically by scripts)
@@ -25,11 +30,20 @@ This directory contains automated setup scripts for deploying VPN servers that w
 
 ### WireGuard Setup
 
+**Ubuntu 20.04/22.04/24.04:**
 ```bash
 # Download and run the script
 wget https://raw.githubusercontent.com/your-repo/selfproxy/main/docs/server-setup/setup-wireguard.sh
 chmod +x setup-wireguard.sh
 sudo ./setup-wireguard.sh
+```
+
+**Amazon Linux 2023:**
+```bash
+# Download and run the Amazon Linux script
+wget https://raw.githubusercontent.com/your-repo/selfproxy/main/docs/server-setup/setup-wireguard-amazon.sh
+chmod +x setup-wireguard-amazon.sh
+sudo ./setup-wireguard-amazon.sh
 ```
 
 The script will:
@@ -41,11 +55,20 @@ The script will:
 
 ### VLESS Setup
 
+**Ubuntu 20.04/22.04/24.04:**
 ```bash
 # Download and run the script
 wget https://raw.githubusercontent.com/your-repo/selfproxy/main/docs/server-setup/setup-vless.sh
 chmod +x setup-vless.sh
 sudo ./setup-vless.sh
+```
+
+**Amazon Linux 2023:**
+```bash
+# Download and run the Amazon Linux script
+wget https://raw.githubusercontent.com/your-repo/selfproxy/main/docs/server-setup/setup-vless-amazon.sh
+chmod +x setup-vless-amazon.sh
+sudo ./setup-vless-amazon.sh
 ```
 
 The script will:
@@ -88,9 +111,42 @@ The script will:
 - Reality protocol for traffic obfuscation
 - Fallback to legitimate website
 
+## Operating System Differences
+
+### Ubuntu vs Amazon Linux
+
+| Feature | Ubuntu Scripts | Amazon Linux Scripts |
+|---------|---------------|---------------------|
+| Package Manager | `apt-get` | `dnf` |
+| Firewall | `ufw` | `firewalld` |
+| Repository | Default Ubuntu repos | EPEL repository |
+| Service Management | `systemctl` | `systemctl` |
+| File Paths | Same | Same |
+
+### Amazon Linux Specific Notes
+
+- **Package Manager**: Uses `dnf` (modern replacement for `yum`)
+- **Firewall**: Uses `firewalld` instead of `ufw`
+- **EPEL Repository**: Automatically installed for additional packages
+- **SELinux**: May require configuration for advanced setups
+- **Kernel Modules**: WireGuard kernel module included in Amazon Linux 2023
+
 ## Firewall Configuration
 
-Both scripts automatically configure UFW (Uncomplicated Firewall):
+### Ubuntu (UFW)
+Scripts automatically configure UFW (Uncomplicated Firewall):
+
+**WireGuard**:
+- UDP port 51820 (or custom port)
+- SSH access maintained
+
+**VLESS**:
+- TCP port 443 (HTTPS)
+- Optional HTTP port 80 (for Let's Encrypt)
+- SSH access maintained
+
+### Amazon Linux (firewalld)
+Scripts automatically configure firewalld:
 
 **WireGuard**:
 - UDP port 51820 (or custom port)
