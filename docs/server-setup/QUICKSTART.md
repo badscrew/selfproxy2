@@ -16,7 +16,7 @@ Get your VPN server running in minutes!
 ### 1. Download the script
 
 ```bash
-wget https://raw.githubusercontent.com/your-repo/selfproxy/main/server-setup/setup-wireguard.sh
+wget https://raw.githubusercontent.com/your-repo/selfproxy/main/docs/server-setup/setup-wireguard.sh
 chmod +x setup-wireguard.sh
 ```
 
@@ -73,7 +73,7 @@ curl https://api.ipify.org
 ### 2. Download the script
 
 ```bash
-wget https://raw.githubusercontent.com/your-repo/selfproxy/main/server-setup/setup-vless.sh
+wget https://raw.githubusercontent.com/your-repo/selfproxy/main/docs/server-setup/setup-vless.sh
 chmod +x setup-vless.sh
 ```
 

@@ -65,19 +65,19 @@ Choose your protocol and follow the setup guide:
 
 **WireGuard (Recommended)**:
 ```bash
-wget https://raw.githubusercontent.com/your-repo/selfproxy/main/server-setup/setup-wireguard.sh
+wget https://raw.githubusercontent.com/your-repo/selfproxy/main/docs/server-setup/setup-wireguard.sh
 chmod +x setup-wireguard.sh
 sudo ./setup-wireguard.sh
 ```
 
 **VLESS (Advanced)**:
 ```bash
-wget https://raw.githubusercontent.com/your-repo/selfproxy/main/server-setup/setup-vless.sh
+wget https://raw.githubusercontent.com/your-repo/selfproxy/main/docs/server-setup/setup-vless.sh
 chmod +x setup-vless.sh
 sudo ./setup-vless.sh
 ```
 
-See [Server Setup Guide](server-setup/README.md) for detailed instructions.
+See [Server Setup Guide](docs/server-setup/README.md) for detailed instructions.
 
 ### 2. Install the App
 
@@ -102,11 +102,11 @@ Tap "Connect" and you're protected! 🎉
 ## Documentation
 
 ### User Guides
-- [Quick Start Guide](server-setup/QUICKSTART.md) - Get started in minutes
+- [Quick Start Guide](docs/server-setup/QUICKSTART.md) - Get started in minutes
 - [WireGuard Setup Guide](#wireguard-setup-guide) - Detailed WireGuard configuration
 - [VLESS Setup Guide](#vless-setup-guide) - Detailed VLESS configuration
 - [QR Code Import Guide](#qr-code-import) - How to scan and import QR codes
-- [Troubleshooting Guide](server-setup/TROUBLESHOOTING.md) - Common issues and solutions
+- [Troubleshooting Guide](docs/server-setup/TROUBLESHOOTING.md) - Common issues and solutions
 - [Privacy Features](#privacy-features) - How we protect your privacy
 
 ### Technical Documentation
@@ -574,7 +574,7 @@ View report: `app/build/reports/coverage/test/debug/index.html`
 
 ## Troubleshooting
 
-See the [Troubleshooting Guide](server-setup/TROUBLESHOOTING.md) for common issues and solutions.
+See the [Troubleshooting Guide](docs/server-setup/TROUBLESHOOTING.md) for common issues and solutions.
 
 ### Common Issues
 

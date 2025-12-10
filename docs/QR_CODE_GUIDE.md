@@ -490,14 +490,14 @@ A: Typically 2-3 KB of text. If larger, consider file import instead.
 - [WireGuard QR Code Format](https://www.wireguard.com/quickstart/)
 - [QR Code Specification](https://www.qrcode.com/en/about/)
 - [SelfProxy Documentation](../README.md)
-- [Troubleshooting Guide](../server-setup/TROUBLESHOOTING.md)
+- [Troubleshooting Guide](server-setup/TROUBLESHOOTING.md)
 
 ## Support
 
 Having issues with QR code scanning?
 
 - Check the [Troubleshooting](#troubleshooting) section above
-- See the [main Troubleshooting Guide](../server-setup/TROUBLESHOOTING.md)
+- See the [main Troubleshooting Guide](server-setup/TROUBLESHOOTING.md)
 - Open an issue on [GitHub](https://github.com/your-repo/selfproxy/issues)
 - Contact support: support@example.com
 

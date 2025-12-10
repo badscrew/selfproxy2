@@ -480,7 +480,7 @@ class ConnectionManager(
 Update relevant documentation:
 - `README.md` - Main documentation
 - `docs/` - Detailed guides
-- `server-setup/` - Server setup guides
+- `docs/server-setup/` - Server setup guides
 - `PRIVACY.md` - Privacy policy
 - `CONTRIBUTING.md` - This file
 

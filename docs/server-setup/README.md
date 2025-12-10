@@ -27,7 +27,7 @@ This directory contains automated setup scripts for deploying VPN servers that w
 
 ```bash
 # Download and run the script
-wget https://raw.githubusercontent.com/your-repo/selfproxy/main/server-setup/setup-wireguard.sh
+wget https://raw.githubusercontent.com/your-repo/selfproxy/main/docs/server-setup/setup-wireguard.sh
 chmod +x setup-wireguard.sh
 sudo ./setup-wireguard.sh
 ```
@@ -43,7 +43,7 @@ The script will:
 
 ```bash
 # Download and run the script
-wget https://raw.githubusercontent.com/your-repo/selfproxy/main/server-setup/setup-vless.sh
+wget https://raw.githubusercontent.com/your-repo/selfproxy/main/docs/server-setup/setup-vless.sh
 chmod +x setup-vless.sh
 sudo ./setup-vless.sh
 ```
