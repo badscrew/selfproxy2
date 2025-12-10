@@ -194,19 +194,43 @@ install_dependencies() {
     # Update system
     dnf update -y
     
-    # Install EPEL repository
-    dnf install -y epel-release
+    # Try to install EPEL repository (needed for certbot and some packages)
+    print_info "Installing EPEL repository (if available)..."
+    if ! dnf install -y epel-release 2>/dev/null; then
+        print_warning "EPEL not available in default repos, trying alternative methods..."
+        
+        # Try Amazon Linux 2023 specific method
+        if [[ "$VERSION_ID" == "2023"* ]]; then
+            print_info "Trying direct EPEL installation for Amazon Linux 2023..."
+            if ! dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm 2>/dev/null; then
+                print_warning "EPEL installation failed, some packages may not be available"
+            fi
+        else
+            # For Amazon Linux 2
+            print_info "Trying Amazon Linux 2 EPEL method..."
+            if command -v amazon-linux-extras &> /dev/null; then
+                amazon-linux-extras install epel -y || print_warning "EPEL installation failed"
+            fi
+        fi
+    fi
     
     # Install dependencies
+    print_info "Installing dependencies..."
     dnf install -y \
         curl \
         wget \
         unzip \
         firewalld \
-        certbot \
         nginx \
         jq \
         openssl
+    
+    # Try to install certbot (might need EPEL)
+    if ! dnf install -y certbot 2>/dev/null; then
+        print_warning "certbot not available from repositories"
+        print_info "Will try to install certbot via snap or pip as fallback"
+        CERTBOT_FALLBACK=true
+    fi
     
     print_success "Dependencies installed"
 }

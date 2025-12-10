@@ -145,18 +145,44 @@ install_dependencies() {
     # Update system
     dnf update -y
     
-    # Install EPEL repository for additional packages
-    dnf install -y epel-release
+    # Try to install EPEL repository (optional for some packages)
+    print_info "Installing EPEL repository (if available)..."
+    if ! dnf install -y epel-release 2>/dev/null; then
+        print_warning "EPEL not available in default repos, trying alternative methods..."
+        
+        # Try Amazon Linux 2023 specific method
+        if [[ "$VERSION_ID" == "2023"* ]]; then
+            print_info "Trying direct EPEL installation for Amazon Linux 2023..."
+            if ! dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm 2>/dev/null; then
+                print_warning "EPEL installation failed, continuing without it..."
+            fi
+        else
+            # For Amazon Linux 2
+            print_info "Trying Amazon Linux 2 EPEL method..."
+            if command -v amazon-linux-extras &> /dev/null; then
+                amazon-linux-extras install epel -y || print_warning "EPEL installation failed"
+            fi
+        fi
+    fi
     
     # Install WireGuard and dependencies
+    print_info "Installing WireGuard and dependencies..."
+    
+    # Install core packages first
     dnf install -y \
         wireguard-tools \
-        qrencode \
         iptables \
         firewalld \
         curl \
         kernel-devel \
         kernel-headers
+    
+    # Try to install qrencode (might need EPEL)
+    if ! dnf install -y qrencode 2>/dev/null; then
+        print_warning "qrencode not available, QR code generation will be skipped"
+        print_info "You can still use the configuration file to import into the app"
+        SKIP_QR=true
+    fi
     
     print_success "Dependencies installed"
 }
@@ -338,6 +364,18 @@ EOF
 
 generate_qr_code() {
     print_header "Generating QR Code"
+    
+    # Check if qrencode is available
+    if [[ "$SKIP_QR" == "true" ]] || ! command -v qrencode &> /dev/null; then
+        print_warning "QR code generation skipped (qrencode not available)"
+        print_info "You can import the configuration file directly:"
+        print_info "  File: $CLIENT_CONFIG"
+        echo
+        print_info "Or install qrencode manually and generate QR code:"
+        print_info "  sudo dnf install qrencode"
+        print_info "  qrencode -t ansiutf8 < $CLIENT_CONFIG"
+        return
+    fi
     
     QR_CODE_FILE="${CLIENT_CONFIG_DIR}/client-qr.png"
     
