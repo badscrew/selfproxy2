@@ -65,14 +65,14 @@ Choose your protocol and follow the setup guide:
 
 **WireGuard (Recommended)**:
 ```bash
-wget https://raw.githubusercontent.com/your-repo/selfproxy/main/docs/server-setup/setup-wireguard.sh
+wget https://raw.githubusercontent.com/badscrew/selfproxy2/main/docs/server-setup/setup-wireguard.sh
 chmod +x setup-wireguard.sh
 sudo ./setup-wireguard.sh
 ```
 
 **VLESS (Advanced)**:
 ```bash
-wget https://raw.githubusercontent.com/your-repo/selfproxy/main/docs/server-setup/setup-vless.sh
+wget https://raw.githubusercontent.com/badscrew/selfproxy2/main/docs/server-setup/setup-vless.sh
 chmod +x setup-vless.sh
 sudo ./setup-vless.sh
 ```
@@ -81,7 +81,7 @@ See [Server Setup Guide](docs/server-setup/README.md) for detailed instructions.
 
 ### 2. Install the App
 
-Download the latest APK from [Releases](https://github.com/your-repo/selfproxy/releases) or build from source.
+Download the latest APK from [Releases](https://github.com/badscrew/selfproxy2/releases) or build from source.
 
 ### 3. Import Configuration
 
@@ -491,8 +491,8 @@ app/
 ### Clone Repository
 
 ```bash
-git clone https://github.com/your-repo/selfproxy.git
-cd selfproxy
+git clone https://github.com/badscrew/selfproxy2.git
+cd selfproxy2
 ```
 
 ### Build Debug APK
@@ -625,8 +625,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 ## Support
 
 - **Documentation**: See guides above
-- **Issues**: [GitHub Issues](https://github.com/your-repo/selfproxy/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-repo/selfproxy/discussions)
+- **Issues**: [GitHub Issues](https://github.com/badscrew/selfproxy2/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/badscrew/selfproxy2/discussions)
 
 ## Security
 

@@ -198,7 +198,7 @@ Complete transparency through open source:
 
 **Audit the code**:
 ```bash
-git clone https://github.com/your-repo/selfproxy.git
+git clone https://github.com/badscrew/selfproxy2.git
 # Search for any suspicious code
 grep -r "analytics" .
 grep -r "tracking" .
@@ -336,7 +336,7 @@ PGP Key: [To be added]
 Email: privacy@example.com
 
 ### General Support
-GitHub Issues: https://github.com/your-repo/selfproxy/issues
+GitHub Issues: https://github.com/badscrew/selfproxy2/issues
 
 ## Changes to This Policy
 
@@ -364,4 +364,4 @@ We will notify users of any changes to this privacy policy through:
 
 **Questions?** Open an issue on GitHub or email privacy@example.com
 
-**Want to verify?** Audit our open-source code: https://github.com/your-repo/selfproxy
+**Want to verify?** Audit our open-source code: https://github.com/badscrew/selfproxy2

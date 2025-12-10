@@ -498,7 +498,7 @@ Having issues with QR code scanning?
 
 - Check the [Troubleshooting](#troubleshooting) section above
 - See the [main Troubleshooting Guide](server-setup/TROUBLESHOOTING.md)
-- Open an issue on [GitHub](https://github.com/your-repo/selfproxy/issues)
+- Open an issue on [GitHub](https://github.com/badscrew/selfproxy2/issues)
 - Contact support: support@example.com
 
 ---

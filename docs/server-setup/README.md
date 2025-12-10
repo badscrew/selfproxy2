@@ -33,7 +33,7 @@ This directory contains automated setup scripts for deploying VPN servers that w
 **Ubuntu 20.04/22.04/24.04:**
 ```bash
 # Download and run the script
-wget https://raw.githubusercontent.com/your-repo/selfproxy/main/docs/server-setup/setup-wireguard.sh
+wget https://raw.githubusercontent.com/badscrew/selfproxy2/main/docs/server-setup/setup-wireguard.sh
 chmod +x setup-wireguard.sh
 sudo ./setup-wireguard.sh
 ```
@@ -41,7 +41,7 @@ sudo ./setup-wireguard.sh
 **Amazon Linux 2023:**
 ```bash
 # Download and run the Amazon Linux script
-wget https://raw.githubusercontent.com/your-repo/selfproxy/main/docs/server-setup/setup-wireguard-amazon.sh
+wget https://raw.githubusercontent.com/badscrew/selfproxy2/main/docs/server-setup/setup-wireguard-amazon.sh
 chmod +x setup-wireguard-amazon.sh
 sudo ./setup-wireguard-amazon.sh
 ```
@@ -58,7 +58,7 @@ The script will:
 **Ubuntu 20.04/22.04/24.04:**
 ```bash
 # Download and run the script
-wget https://raw.githubusercontent.com/your-repo/selfproxy/main/docs/server-setup/setup-vless.sh
+wget https://raw.githubusercontent.com/badscrew/selfproxy2/main/docs/server-setup/setup-vless.sh
 chmod +x setup-vless.sh
 sudo ./setup-vless.sh
 ```
@@ -66,7 +66,7 @@ sudo ./setup-vless.sh
 **Amazon Linux 2023:**
 ```bash
 # Download and run the Amazon Linux script
-wget https://raw.githubusercontent.com/your-repo/selfproxy/main/docs/server-setup/setup-vless-amazon.sh
+wget https://raw.githubusercontent.com/badscrew/selfproxy2/main/docs/server-setup/setup-vless-amazon.sh
 chmod +x setup-vless-amazon.sh
 sudo ./setup-vless-amazon.sh
 ```

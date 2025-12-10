@@ -64,22 +64,22 @@ Instances of abusive, harassing, or otherwise unacceptable behavior may be repor
 
 2. **Clone your fork**:
 ```bash
-git clone https://github.com/YOUR-USERNAME/selfproxy.git
-cd selfproxy
+git clone https://github.com/YOUR-USERNAME/selfproxy2.git
+cd selfproxy2
 ```
 
 3. **Add upstream remote**:
 ```bash
-git remote add upstream https://github.com/original-repo/selfproxy.git
+git remote add upstream https://github.com/badscrew/selfproxy2.git
 ```
 
 4. **Verify remotes**:
 ```bash
 git remote -v
-# origin    https://github.com/YOUR-USERNAME/selfproxy.git (fetch)
-# origin    https://github.com/YOUR-USERNAME/selfproxy.git (push)
-# upstream  https://github.com/original-repo/selfproxy.git (fetch)
-# upstream  https://github.com/original-repo/selfproxy.git (push)
+# origin    https://github.com/YOUR-USERNAME/selfproxy2.git (fetch)
+# origin    https://github.com/YOUR-USERNAME/selfproxy2.git (push)
+# upstream  https://github.com/badscrew/selfproxy2.git (fetch)
+# upstream  https://github.com/badscrew/selfproxy2.git (push)
 ```
 
 ## Development Setup
@@ -592,7 +592,7 @@ By contributing to SelfProxy, you agree that your contributions will be licensed
 
 ## Questions?
 
-- Open a [GitHub Discussion](https://github.com/your-repo/selfproxy/discussions)
+- Open a [GitHub Discussion](https://github.com/badscrew/selfproxy2/discussions)
 - Email: contribute@example.com
 
 ---

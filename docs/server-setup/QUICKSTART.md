@@ -21,13 +21,13 @@ Get your VPN server running in minutes!
 
 **For Ubuntu:**
 ```bash
-wget https://raw.githubusercontent.com/your-repo/selfproxy/main/docs/server-setup/setup-wireguard.sh
+wget https://raw.githubusercontent.com/badscrew/selfproxy2/main/docs/server-setup/setup-wireguard.sh
 chmod +x setup-wireguard.sh
 ```
 
 **For Amazon Linux 2023:**
 ```bash
-wget https://raw.githubusercontent.com/your-repo/selfproxy/main/docs/server-setup/setup-wireguard-amazon.sh
+wget https://raw.githubusercontent.com/badscrew/selfproxy2/main/docs/server-setup/setup-wireguard-amazon.sh
 chmod +x setup-wireguard-amazon.sh
 ```
 
@@ -91,13 +91,13 @@ curl https://api.ipify.org
 
 **For Ubuntu:**
 ```bash
-wget https://raw.githubusercontent.com/your-repo/selfproxy/main/docs/server-setup/setup-vless.sh
+wget https://raw.githubusercontent.com/badscrew/selfproxy2/main/docs/server-setup/setup-vless.sh
 chmod +x setup-vless.sh
 ```
 
 **For Amazon Linux 2023:**
 ```bash
-wget https://raw.githubusercontent.com/your-repo/selfproxy/main/docs/server-setup/setup-vless-amazon.sh
+wget https://raw.githubusercontent.com/badscrew/selfproxy2/main/docs/server-setup/setup-vless-amazon.sh
 chmod +x setup-vless-amazon.sh
 ```
 

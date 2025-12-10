@@ -596,4 +596,4 @@ If you're still having issues:
 - [Xray Documentation](https://xtls.github.io/)
 - [Let's Encrypt Documentation](https://letsencrypt.org/docs/)
 - [UFW Documentation](https://help.ubuntu.com/community/UFW)
-- [SelfProxy GitHub](https://github.com/your-repo/selfproxy)
+- [SelfProxy GitHub](https://github.com/badscrew/selfproxy2)
