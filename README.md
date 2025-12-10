@@ -77,7 +77,7 @@ chmod +x setup-vless.sh
 sudo ./setup-vless.sh
 ```
 
-See [Server Setup Guide](docs/server-setup/README.md) for detailed instructions.
+See [Server Setup Guide](docs/server-setup/QUICKSTART.md) for detailed instructions.
 
 ### 2. Install the App
 

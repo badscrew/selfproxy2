@@ -1,12 +1,11 @@
-# Quick Start Guide
+# Server Setup Guide
 
-Get your VPN server running in minutes!
+Get your VPN server running in minutes! This guide covers automated setup scripts for deploying VPN servers that work with the SelfProxy Android application.
 
 ## Prerequisites
 
 ### Supported Systems
 - **Ubuntu**: 20.04, 22.04, or 24.04 LTS server
-- **Amazon Linux**: 2023 (RedHat-based)
 
 ### Requirements
 - Root access (sudo)
@@ -25,22 +24,11 @@ wget https://raw.githubusercontent.com/badscrew/selfproxy2/main/docs/server-setu
 chmod +x setup-wireguard.sh
 ```
 
-**For Amazon Linux 2023:**
-```bash
-wget https://raw.githubusercontent.com/badscrew/selfproxy2/main/docs/server-setup/setup-wireguard-amazon.sh
-chmod +x setup-wireguard-amazon.sh
-```
-
 ### 2. Run the script
 
 **For Ubuntu:**
 ```bash
 sudo ./setup-wireguard.sh
-```
-
-**For Amazon Linux 2023:**
-```bash
-sudo ./setup-wireguard-amazon.sh
 ```
 
 ### 3. Follow the prompts
@@ -95,11 +83,6 @@ wget https://raw.githubusercontent.com/badscrew/selfproxy2/main/docs/server-setu
 chmod +x setup-vless.sh
 ```
 
-**For Amazon Linux 2023:**
-```bash
-wget https://raw.githubusercontent.com/badscrew/selfproxy2/main/docs/server-setup/setup-vless-amazon.sh
-chmod +x setup-vless-amazon.sh
-```
 
 ### 3. Run the script
 
@@ -294,7 +277,7 @@ VLESS supports multiple clients with the same UUID, so you can use the same conf
 
 ## Getting Help
 
-- **Documentation**: See [README.md](README.md) for detailed information
+- **Documentation**: See [Project README](../../README.md) for detailed information
 - **Issues**: Open an issue on GitHub
 - **Community**: Join our discussion forum
 
