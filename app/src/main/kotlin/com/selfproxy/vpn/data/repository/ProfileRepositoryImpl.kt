@@ -296,20 +296,23 @@ class ProfileRepositoryImpl(
                     }
                     
                     // Create the profile in the database
-                    // Extract credentials for WireGuard profiles
-                    val presharedKey = if (importedConfig.protocol == Protocol.WIREGUARD) {
-                        importedConfig.wireGuardConfig?.presharedKey
-                    } else {
-                        null
+                    // Extract credentials based on protocol
+                    val credential: String?
+                    val privateKey: String?
+                    
+                    when (importedConfig.protocol) {
+                        Protocol.WIREGUARD -> {
+                            credential = importedConfig.wireGuardConfig?.presharedKey
+                            privateKey = importedConfig.wireGuardConfig?.privateKey
+                        }
+                        Protocol.VLESS -> {
+                            // For VLESS, the credential is the UUID
+                            credential = importedConfig.vlessConfig?.uuid
+                            privateKey = null
+                        }
                     }
                     
-                    val privateKey = if (importedConfig.protocol == Protocol.WIREGUARD) {
-                        importedConfig.wireGuardConfig?.privateKey
-                    } else {
-                        null
-                    }
-                    
-                    createProfile(profile, presharedKey, privateKey).fold(
+                    createProfile(profile, credential, privateKey).fold(
                         onSuccess = { id ->
                             Result.success(profile.copy(id = id))
                         },
