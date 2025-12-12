@@ -195,6 +195,22 @@ fun SettingsScreen(
             
             // Connection Settings Section
             SettingsSection(title = "Connection Settings") {
+                TextFieldSetting(
+                    title = "Connection Test URL",
+                    value = settings.connectionTestUrl,
+                    onValueChange = { value ->
+                        onUpdateSettings(settings.copy(connectionTestUrl = value))
+                    },
+                    placeholder = "http://www.google.com/generate_204"
+                )
+                Text(
+                    text = "URL used to test VPN connectivity. Common options: google.com/generate_204, cloudflare.com, example.com",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
                 NumberFieldSetting(
                     title = "Connection Timeout",
                     description = "Timeout for connection attempts (5-120 seconds)",

@@ -97,7 +97,7 @@ val appModule = module {
      * VLESS protocol adapter.
      * Requirements: 3.2, 3.10, 7.8, 9.9-9.15
      */
-    single { VlessAdapter(androidContext(), get()) }
+    single { VlessAdapter(androidContext(), get(), get()) }
     
     // ========================================
     // Domain Services and Managers

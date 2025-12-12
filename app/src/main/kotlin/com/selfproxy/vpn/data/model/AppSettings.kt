@@ -28,6 +28,9 @@ data class AppSettings(
     val autoReconnectEnabled: Boolean = true,
     val reconnectionMaxAttempts: Int = 5,
     
+    // Connection test settings
+    val connectionTestUrl: String = "http://www.google.com/generate_204",
+    
     // WireGuard-specific settings (Requirement 14.6, 14.7, 14.8, 14.9, 14.10)
     val wireGuardPersistentKeepalive: Int = 25, // seconds, 0 to disable
     val wireGuardMtu: Int = 1420,
@@ -93,6 +96,13 @@ fun AppSettings.validate(): SettingsValidation {
     // Validate reconnection attempts
     if (reconnectionMaxAttempts < 1 || reconnectionMaxAttempts > 20) {
         errors.add("Reconnection max attempts must be between 1 and 20")
+    }
+    
+    // Validate connection test URL
+    if (connectionTestUrl.isBlank()) {
+        errors.add("Connection test URL cannot be blank")
+    } else if (!connectionTestUrl.startsWith("http://") && !connectionTestUrl.startsWith("https://")) {
+        errors.add("Connection test URL must start with http:// or https://")
     }
     
     return SettingsValidation(

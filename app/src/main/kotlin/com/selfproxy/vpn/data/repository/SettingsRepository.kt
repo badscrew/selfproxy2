@@ -38,6 +38,7 @@ class SettingsRepository(private val context: Context) {
         private val KEEPALIVE_INTERVAL = intPreferencesKey("keepalive_interval")
         private val AUTO_RECONNECT_ENABLED = booleanPreferencesKey("auto_reconnect_enabled")
         private val RECONNECTION_MAX_ATTEMPTS = intPreferencesKey("reconnection_max_attempts")
+        private val CONNECTION_TEST_URL = stringPreferencesKey("connection_test_url")
         
         // WireGuard settings
         private val WIREGUARD_PERSISTENT_KEEPALIVE = intPreferencesKey("wireguard_persistent_keepalive")
@@ -69,6 +70,7 @@ class SettingsRepository(private val context: Context) {
                 keepAliveInterval = preferences[KEEPALIVE_INTERVAL] ?: 25,
                 autoReconnectEnabled = preferences[AUTO_RECONNECT_ENABLED] ?: true,
                 reconnectionMaxAttempts = preferences[RECONNECTION_MAX_ATTEMPTS] ?: 5,
+                connectionTestUrl = preferences[CONNECTION_TEST_URL] ?: "http://www.google.com/generate_204",
                 wireGuardPersistentKeepalive = preferences[WIREGUARD_PERSISTENT_KEEPALIVE] ?: 25,
                 wireGuardMtu = preferences[WIREGUARD_MTU] ?: 1420,
                 vlessDefaultTransport = TransportProtocol.valueOf(
@@ -99,6 +101,7 @@ class SettingsRepository(private val context: Context) {
             preferences[KEEPALIVE_INTERVAL] = settings.keepAliveInterval
             preferences[AUTO_RECONNECT_ENABLED] = settings.autoReconnectEnabled
             preferences[RECONNECTION_MAX_ATTEMPTS] = settings.reconnectionMaxAttempts
+            preferences[CONNECTION_TEST_URL] = settings.connectionTestUrl
             preferences[WIREGUARD_PERSISTENT_KEEPALIVE] = settings.wireGuardPersistentKeepalive
             preferences[WIREGUARD_MTU] = settings.wireGuardMtu
             preferences[VLESS_DEFAULT_TRANSPORT] = settings.vlessDefaultTransport.name

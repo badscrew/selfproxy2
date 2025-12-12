@@ -20,6 +20,10 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        
+        ndk {
+            abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64"))
+        }
     }
 
     buildTypes {
@@ -107,9 +111,8 @@ dependencies {
     // Security
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
 
-    // VLESS (Xray-core integration)
-    // TODO: Add Xray-core library for VLESS protocol support
-    // implementation("com.github.2dust:AndroidLibXrayLite:1.8.5")
+    // VLESS (Xray-core integration) - using local AAR
+    implementation(files("libs/libv2ray.aar"))
 
     // Networking
     implementation("com.squareup.okhttp3:okhttp:4.12.0")

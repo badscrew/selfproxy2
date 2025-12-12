@@ -88,6 +88,7 @@ class TunnelVpnService : VpnService() {
     private var ipv6Enabled: Boolean = false
     private var customDnsServers: List<String> = listOf(PRIMARY_DNS, SECONDARY_DNS)
     private var excludedApps: Set<String> = emptySet()
+    private var socksPort: Int = 0  // SOCKS5 proxy port
 
     override fun onCreate() {
         super.onCreate()
@@ -100,16 +101,39 @@ class TunnelVpnService : VpnService() {
         
         when (intent?.action) {
             ACTION_START_VPN -> {
-                // Start VPN with provided configuration
-                // Note: In production, profile and adapter would be passed via dependency injection
-                // or retrieved from a connection manager
+                // Extract SOCKS5 port and profile info from intent
+                socksPort = intent.getIntExtra("SOCKS_PORT", 0)
+                val profileName = intent.getStringExtra("PROFILE_NAME") ?: "VPN Server"
+                val serverAddress = intent.getStringExtra("SERVER_ADDRESS") ?: "Unknown"
+                
+                SanitizedLogger.d(TAG, "Starting VPN with SOCKS5 port: $socksPort")
+                SanitizedLogger.d(TAG, "Profile: $profileName, Server: $serverAddress")
+                
+                if (socksPort == 0) {
+                    SanitizedLogger.e(TAG, "Invalid SOCKS5 port: $socksPort")
+                    stopSelf()
+                    return START_NOT_STICKY
+                }
+                
+                // Start foreground service with notification
                 val notification = createNotification(
                     "VPN Connecting...", 
-                    "Establishing connection",
+                    "Establishing tunnel to $profileName",
                     showDisconnectAction = false
                 )
                 startForeground(NOTIFICATION_ID, notification)
-                startVpnTunnel()
+                
+                // Start VPN tunnel
+                startVpnTunnel(
+                    profile = null,  // Profile not needed for basic routing
+                    adapter = null,  // Adapter not needed - using SOCKS5 directly
+                    ipv6Enabled = false,  // TODO: Make configurable
+                    dnsServers = listOf(PRIMARY_DNS, SECONDARY_DNS),
+                    excludedApps = emptySet()  // TODO: Load from settings
+                )
+                
+                // Update notification with connected status
+                updateNotificationWithStatus("Connected", profileName, "via $serverAddress")
             }
             ACTION_STOP_VPN -> {
                 updateNotificationWithStatus("Disconnecting")
