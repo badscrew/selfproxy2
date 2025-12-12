@@ -96,7 +96,7 @@ app/
   - `vpn/`: VPN service (TunnelVpnService)
   - `storage/`: Credential storage with Android Keystore (to be added)
   - `network/`: Network monitoring (to be added)
-  - Protocol adapters (WireGuard, VLESS) (to be added)
+  - Protocol adapter (VLESS) (to be added)
 
 ### Dependency Injection (`di/`)
 - **Purpose**: Koin dependency injection configuration
@@ -113,9 +113,8 @@ app/
 - **Async**: Kotlin Coroutines 1.7.3
 - **Serialization**: kotlinx.serialization 1.6.2
 - **Security**: Android Security Crypto 1.1.0-alpha06
-- **VPN Protocols**:
-  - WireGuard: wireguard-android 1.0.20230706
-  - VLESS: AndroidLibXrayLite 1.8.5
+- **VPN Protocol**:
+  - VLESS: AndroidLibXrayLite 1.8.5 (to be integrated)
 
 ## Build Configuration
 
@@ -145,7 +144,6 @@ app/
 The `proguard-rules.pro` file contains rules for:
 - Kotlin Serialization
 - Room Database
-- WireGuard library
 - Xray-core (VLESS)
 - OkHttp
 - Koin
@@ -181,8 +179,7 @@ The following components need to be implemented in subsequent tasks:
    - Android Keystore integration
    - Encryption/decryption
 
-4. **Protocol Adapters** (Tasks 6-7)
-   - WireGuard adapter
+4. **Protocol Adapter** (Task 6)
    - VLESS adapter
 
 5. **Connection Manager** (Task 8)
@@ -215,5 +212,4 @@ The following components need to be implemented in subsequent tasks:
 - [Jetpack Compose](https://developer.android.com/jetpack/compose)
 - [Kotlin Coroutines](https://kotlinlang.org/docs/coroutines-overview.html)
 - [Room Database](https://developer.android.com/training/data-storage/room)
-- [WireGuard](https://www.wireguard.com/)
 - [Xray-core](https://github.com/XTLS/Xray-core)

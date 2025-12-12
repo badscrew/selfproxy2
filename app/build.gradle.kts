@@ -107,11 +107,8 @@ dependencies {
     // Security
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
 
-    // WireGuard
-    implementation("com.wireguard.android:tunnel:1.0.20230706")
-
     // VLESS (Xray-core integration)
-    // TODO: Find correct version or alternative library
+    // TODO: Add Xray-core library for VLESS protocol support
     // implementation("com.github.2dust:AndroidLibXrayLite:1.8.5")
 
     // Networking

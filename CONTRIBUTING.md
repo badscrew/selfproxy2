@@ -181,7 +181,7 @@ footer (optional)
 
 **Examples**:
 ```bash
-git commit -m "feat(wireguard): add preshared key support"
+git commit -m "feat(vless): add Reality protocol support"
 git commit -m "fix(vpn): prevent DNS leak on network change"
 git commit -m "docs(readme): update installation instructions"
 ```
@@ -217,7 +217,7 @@ git commit -m "docs(readme): update installation instructions"
 
 **Specific test**:
 ```bash
-./gradlew test --tests "com.selfproxy.vpn.data.model.WireGuardProfilePropertiesTest"
+./gradlew test --tests "com.selfproxy.vpn.data.model.VlessProfilePropertiesTest"
 ```
 
 ### Writing Tests
@@ -461,16 +461,14 @@ Run linter before committing:
 **KDoc comments** for public APIs:
 ```kotlin
 /**
- * Manages VPN connections across all protocols.
+ * Manages VPN connections using VLESS protocol.
  *
  * This class provides a unified interface for connecting to VPN servers
- * using different protocols (WireGuard, VLESS).
+ * using the VLESS protocol with multiple transport options.
  *
- * @property wireGuardAdapter WireGuard protocol implementation
  * @property vlessAdapter VLESS protocol implementation
  */
 class ConnectionManager(
-    private val wireGuardAdapter: ProtocolAdapter,
     private val vlessAdapter: ProtocolAdapter
 )
 ```

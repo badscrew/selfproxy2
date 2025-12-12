@@ -24,9 +24,7 @@ class AndroidCredentialStore(
     private companion object {
         const val PREFS_NAME = "vpn_credentials"
         
-        // Preference key prefixes
-        const val WIREGUARD_PRIVATE_KEY_PREFIX = "wg_private_"
-        const val WIREGUARD_PRESHARED_KEY_PREFIX = "wg_preshared_"
+        // Preference key prefix
         const val VLESS_UUID_PREFIX = "vless_uuid_"
     }
     
@@ -59,52 +57,6 @@ class AndroidCredentialStore(
         }
     }
     
-    override suspend fun storeWireGuardPrivateKey(
-        profileId: Long,
-        privateKey: String
-    ): Result<Unit> = withContext(Dispatchers.IO) {
-        runCatching {
-            // Validate using SecurityValidator
-            SecurityValidator.validateWireGuardPrivateKey(privateKey).getOrThrow()
-            encryptedPrefs.edit()
-                .putString("$WIREGUARD_PRIVATE_KEY_PREFIX$profileId", privateKey)
-                .apply()
-        }
-    }
-    
-    override suspend fun getWireGuardPrivateKey(profileId: Long): Result<String> =
-        withContext(Dispatchers.IO) {
-            runCatching {
-                encryptedPrefs.getString(
-                    "$WIREGUARD_PRIVATE_KEY_PREFIX$profileId",
-                    null
-                ) ?: throw CredentialNotFoundException("WireGuard private key not found for profile $profileId")
-            }
-        }
-    
-    override suspend fun storeWireGuardPresharedKey(
-        profileId: Long,
-        presharedKey: String
-    ): Result<Unit> = withContext(Dispatchers.IO) {
-        runCatching {
-            // Validate using SecurityValidator
-            SecurityValidator.validateWireGuardPresharedKey(presharedKey).getOrThrow()
-            encryptedPrefs.edit()
-                .putString("$WIREGUARD_PRESHARED_KEY_PREFIX$profileId", presharedKey)
-                .apply()
-        }
-    }
-    
-    override suspend fun getWireGuardPresharedKey(profileId: Long): Result<String> =
-        withContext(Dispatchers.IO) {
-            runCatching {
-                encryptedPrefs.getString(
-                    "$WIREGUARD_PRESHARED_KEY_PREFIX$profileId",
-                    null
-                ) ?: throw CredentialNotFoundException("WireGuard preshared key not found for profile $profileId")
-            }
-        }
-    
     override suspend fun storeVlessUuid(
         profileId: Long,
         uuid: String
@@ -132,8 +84,6 @@ class AndroidCredentialStore(
         withContext(Dispatchers.IO) {
             runCatching {
                 encryptedPrefs.edit()
-                    .remove("$WIREGUARD_PRIVATE_KEY_PREFIX$profileId")
-                    .remove("$WIREGUARD_PRESHARED_KEY_PREFIX$profileId")
                     .remove("$VLESS_UUID_PREFIX$profileId")
                     .apply()
             }
@@ -141,8 +91,6 @@ class AndroidCredentialStore(
     
     override suspend fun hasCredentials(profileId: Long): Boolean =
         withContext(Dispatchers.IO) {
-            encryptedPrefs.contains("$WIREGUARD_PRIVATE_KEY_PREFIX$profileId") ||
-            encryptedPrefs.contains("$WIREGUARD_PRESHARED_KEY_PREFIX$profileId") ||
             encryptedPrefs.contains("$VLESS_UUID_PREFIX$profileId")
         }
 }

@@ -13,13 +13,10 @@ import com.selfproxy.vpn.domain.repository.CredentialStore
 import com.selfproxy.vpn.domain.repository.ProfileRepository
 import com.selfproxy.vpn.platform.security.AndroidCredentialStore
 import com.selfproxy.vpn.platform.vless.VlessAdapter
-import com.selfproxy.vpn.platform.wireguard.WireGuardAdapter
 import com.selfproxy.vpn.ui.viewmodel.AppRoutingViewModel
 import com.selfproxy.vpn.ui.viewmodel.ConnectionViewModel
 import com.selfproxy.vpn.ui.viewmodel.ProfileViewModel
 import com.selfproxy.vpn.ui.viewmodel.SettingsViewModel
-import com.wireguard.android.backend.Backend
-import com.wireguard.android.backend.GoBackend
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
@@ -93,26 +90,8 @@ val appModule = module {
     }
     
     // ========================================
-    // WireGuard Backend
+    // Protocol Adapter
     // ========================================
-    
-    /**
-     * WireGuard backend implementation using Go backend.
-     * Requirements: 3.1, 9.1-9.8
-     */
-    single<Backend> {
-        GoBackend(androidContext())
-    }
-    
-    // ========================================
-    // Protocol Adapters
-    // ========================================
-    
-    /**
-     * WireGuard protocol adapter.
-     * Requirements: 3.1, 3.9, 7.7, 9.1-9.8
-     */
-    single { WireGuardAdapter(androidContext(), get(), get()) }
     
     /**
      * VLESS protocol adapter.
@@ -148,7 +127,6 @@ val appModule = module {
      */
     single { 
         ConnectionManager(
-            wireGuardAdapter = get<WireGuardAdapter>(),
             vlessAdapter = get<VlessAdapter>(),
             profileRepository = get(),
             batteryOptimizationManager = get()

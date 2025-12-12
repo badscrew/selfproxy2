@@ -54,7 +54,7 @@ All data is stored **only on your device** and **never transmitted** to us or an
 ### ✅ VPN Server Profiles
 - Server addresses (hostnames/IPs)
 - Port numbers
-- Protocol types (WireGuard/VLESS)
+- Protocol type (VLESS)
 - Profile names (your custom names)
 - Last connection time (for sorting)
 
@@ -62,9 +62,7 @@ All data is stored **only on your device** and **never transmitted** to us or an
 **Encryption**: Database encrypted with Android's built-in encryption
 
 ### ✅ VPN Credentials
-- WireGuard private keys
 - VLESS UUIDs
-- Preshared keys (if used)
 - TLS certificates (if used)
 
 **Storage**: Android Keystore  
@@ -144,9 +142,9 @@ IPv6 Traffic → BLOCKED (prevents leak)
 
 All traffic is encrypted end-to-end:
 
-**WireGuard**:
-- Curve25519 for key exchange
-- ChaCha20-Poly1305 for encryption
+**VLESS**:
+- TLS 1.3 encryption
+- Reality protocol for obfuscation
 - Optional preshared keys for post-quantum security
 
 **VLESS**:
@@ -227,12 +225,6 @@ grep -r "telemetry" .
 
 We use open-source libraries for VPN protocols:
 
-**WireGuard**:
-- Library: `wireguard-android`
-- License: GPLv2
-- Privacy: No data collection
-- Source: https://git.zx2c4.com/wireguard-android/
-
 **VLESS**:
 - Library: `AndroidLibXrayLite`
 - License: MPL 2.0
@@ -266,7 +258,6 @@ You can delete your data at any time:
 
 ### Export Your Data
 You can export your configurations:
-- WireGuard: Export as config file or QR code
 - VLESS: Export as URI or JSON
 
 ## Compliance
@@ -305,7 +296,7 @@ Since we collect no data, we comply with virtually all privacy regulations world
 
 ### Network Security
 - ✅ TLS 1.3 for VLESS
-- ✅ Modern cryptography (WireGuard)
+- ✅ Reality protocol for obfuscation
 - ✅ Certificate pinning (planned)
 - ✅ DNS over VPN
 - ✅ IPv6 leak prevention

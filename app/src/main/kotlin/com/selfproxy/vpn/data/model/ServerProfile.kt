@@ -10,9 +10,9 @@ import kotlinx.serialization.json.Json
 /**
  * Server profile entity stored in the database.
  * 
- * Represents a VPN server configuration that can use either WireGuard or VLESS protocol.
+ * Represents a VPN server configuration using VLESS protocol.
  * Protocol-specific configurations are stored as JSON strings in the database.
- * Sensitive credentials (private keys, UUIDs) are stored separately in the CredentialStore.
+ * Sensitive credentials (UUIDs) are stored separately in the CredentialStore.
  */
 @Entity(tableName = "server_profiles")
 @Serializable
@@ -26,9 +26,9 @@ data class ServerProfile(
     val name: String,
     
     /**
-     * VPN protocol type (WireGuard or VLESS).
+     * VPN protocol type (VLESS only).
      */
-    val protocol: Protocol,
+    val protocol: Protocol = Protocol.VLESS,
     
     /**
      * Server hostname or IP address.
@@ -51,62 +51,21 @@ data class ServerProfile(
     val lastUsed: Long? = null,
     
     /**
-     * WireGuard-specific configuration (stored as JSON).
-     * Only populated when protocol is WIREGUARD.
-     */
-    val wireGuardConfigJson: String? = null,
-    
-    /**
      * VLESS-specific configuration (stored as JSON).
-     * Only populated when protocol is VLESS.
      */
-    val vlessConfigJson: String? = null
+    val vlessConfigJson: String
 ) {
     init {
         require(name.isNotBlank()) { "Profile name cannot be blank" }
         require(hostname.isNotBlank()) { "Hostname cannot be blank" }
         require(port in 1..65535) { "Port must be between 1 and 65535" }
-        
-        // Validate that the correct config is present for the protocol
-        when (protocol) {
-            Protocol.WIREGUARD -> require(wireGuardConfigJson != null) {
-                "WireGuard configuration required for WireGuard protocol"
-            }
-            Protocol.VLESS -> require(vlessConfigJson != null) {
-                "VLESS configuration required for VLESS protocol"
-            }
-        }
+        require(protocol == Protocol.VLESS) { "Only VLESS protocol is supported" }
     }
     
     companion object {
         private val json = Json { 
             ignoreUnknownKeys = true
             encodeDefaults = true
-        }
-        
-        /**
-         * Creates a ServerProfile with WireGuard configuration.
-         */
-        fun createWireGuardProfile(
-            name: String,
-            hostname: String,
-            port: Int,
-            config: WireGuardConfig,
-            id: Long = 0,
-            createdAt: Long = System.currentTimeMillis(),
-            lastUsed: Long? = null
-        ): ServerProfile {
-            return ServerProfile(
-                id = id,
-                name = name,
-                protocol = Protocol.WIREGUARD,
-                hostname = hostname,
-                port = port,
-                createdAt = createdAt,
-                lastUsed = lastUsed,
-                wireGuardConfigJson = json.encodeToString(config),
-                vlessConfigJson = null
-            )
         }
         
         /**
@@ -129,27 +88,15 @@ data class ServerProfile(
                 port = port,
                 createdAt = createdAt,
                 lastUsed = lastUsed,
-                wireGuardConfigJson = null,
                 vlessConfigJson = json.encodeToString(config)
             )
         }
     }
     
     /**
-     * Parses and returns the WireGuard configuration.
-     * @throws IllegalStateException if protocol is not WIREGUARD
-     */
-    fun getWireGuardConfig(): WireGuardConfig {
-        check(protocol == Protocol.WIREGUARD) { "Profile is not a WireGuard profile" }
-        return json.decodeFromString(wireGuardConfigJson!!)
-    }
-    
-    /**
      * Parses and returns the VLESS configuration.
-     * @throws IllegalStateException if protocol is not VLESS
      */
     fun getVlessConfig(): VlessConfig {
-        check(protocol == Protocol.VLESS) { "Profile is not a VLESS profile" }
-        return json.decodeFromString(vlessConfigJson!!)
+        return json.decodeFromString(vlessConfigJson)
     }
 }

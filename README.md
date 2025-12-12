@@ -1,28 +1,29 @@
 # SelfProxy VPN
 
-A native Android VPN application that gives you complete control over your privacy by routing traffic through your own VPN servers. Unlike commercial VPN services, SelfProxy lets you use your own infrastructure (cloud servers, home servers, or workplace servers) as secure tunnels.
+A native Android VPN application that gives you complete control over your privacy by routing traffic through your own VPN servers using the VLESS protocol. Unlike commercial VPN services, SelfProxy lets you use your own infrastructure (cloud servers, home servers, or workplace servers) as secure tunnels.
 
 ## Why SelfProxy?
 
 **Own Your Privacy**: Your data, your server, your rules. No third-party VPN provider can see your traffic.
 
-**Modern Protocols**: Support for WireGuard (recommended) and VLESS (advanced obfuscation).
+**Modern Protocol**: VLESS with advanced obfuscation and multiple transport options.
 
-**Battery Efficient**: Optimized for all-day use, especially with WireGuard's efficient cryptography.
+**Bypass Restrictions**: Designed to work in restrictive network environments with deep packet inspection.
 
 **No Tracking**: Zero data collection, no analytics, no telemetry. Open source and auditable.
 
 ## Features
 
 ### Core Functionality
-- **Dual Protocol Support**: WireGuard (default) and VLESS (advanced)
+- **VLESS Protocol**: Advanced VPN protocol with traffic obfuscation
 - **Profile Management**: Create, edit, and manage multiple server profiles
 - **One-Tap Connection**: Quick connection to any saved profile
-- **QR Code Import**: Scan WireGuard QR codes for instant setup
 - **URI Import**: Import VLESS configurations via URI
+- **Multiple Transports**: TCP, WebSocket, gRPC, HTTP/2
 
 ### Security & Privacy
 - **Hardware-Backed Encryption**: Android Keystore with StrongBox support
+- **TLS 1.3 Encryption**: Modern encryption with Reality protocol support
 - **DNS Leak Prevention**: All DNS queries routed through tunnel
 - **IPv6 Leak Prevention**: Proper IPv6 handling or blocking
 - **No Data Collection**: Zero tracking, analytics, or telemetry
@@ -36,19 +37,23 @@ A native Android VPN application that gives you complete control over your priva
 - **Traffic Verification**: Verify your traffic is routed through the VPN
 - **Battery Optimization**: Efficient power management for all-day protection
 
-### Protocols
+### VLESS Protocol
 
-#### WireGuard (Recommended)
-- **Best for**: Most users
-- **Advantages**: Fast, efficient, simple, excellent battery life
-- **Cryptography**: Curve25519 + ChaCha20-Poly1305
-- **Setup time**: < 2 minutes with QR code
+**Best for**: Users requiring obfuscation in restrictive networks
 
-#### VLESS (Advanced)
-- **Best for**: Users requiring obfuscation in restrictive networks
-- **Advantages**: Multiple transports, TLS/Reality support, traffic obfuscation
-- **Transports**: TCP, WebSocket, gRPC, HTTP/2
-- **Setup time**: 5-10 minutes
+**Advantages**:
+- Multiple transport protocols (TCP, WebSocket, gRPC, HTTP/2)
+- TLS/Reality support for traffic obfuscation
+- Bypasses deep packet inspection
+- Flexible routing rules
+
+**Transports**:
+- **TCP**: Direct connection, fastest but least obfuscated
+- **WebSocket**: HTTP upgrade, good for bypassing firewalls
+- **gRPC**: Modern, efficient, HTTP/2 multiplexing
+- **HTTP/2**: Standard HTTPS traffic, excellent obfuscation
+
+**Setup time**: 5-10 minutes
 
 ## Requirements
 
@@ -61,16 +66,8 @@ A native Android VPN application that gives you complete control over your priva
 
 ### 1. Set Up Your Server
 
-Choose your protocol and follow the setup guide:
+Run the automated setup script on your server:
 
-**WireGuard (Recommended)**:
-```bash
-wget https://raw.githubusercontent.com/badscrew/selfproxy2/main/docs/server-setup/setup-wireguard.sh
-chmod +x setup-wireguard.sh
-sudo ./setup-wireguard.sh
-```
-
-**VLESS (Advanced)**:
 ```bash
 wget https://raw.githubusercontent.com/badscrew/selfproxy2/main/docs/server-setup/setup-vless.sh
 chmod +x setup-vless.sh
@@ -85,15 +82,17 @@ Download the latest APK from [Releases](https://github.com/badscrew/selfproxy2/r
 
 ### 3. Import Configuration
 
-**WireGuard**:
-- Scan the QR code displayed by the setup script, or
-- Import the `client.conf` file, or
-- Enter details manually
+**Option 1: URI (Easiest)**
+- Copy the VLESS URI from the setup script
+- Open SelfProxy app
+- Tap "+" to add profile
+- Tap "Import URI"
+- Paste the URI
 
-**VLESS**:
-- Paste the VLESS URI from the setup script, or
-- Import the JSON configuration file, or
-- Enter details manually
+**Option 2: Manual Entry**
+- Open SelfProxy app
+- Tap "+" to add profile
+- Enter server details manually
 
 ### 4. Connect
 
@@ -103,9 +102,7 @@ Tap "Connect" and you're protected! 🎉
 
 ### User Guides
 - [Quick Start Guide](docs/server-setup/QUICKSTART.md) - Get started in minutes
-- [WireGuard Setup Guide](#wireguard-setup-guide) - Detailed WireGuard configuration
 - [VLESS Setup Guide](#vless-setup-guide) - Detailed VLESS configuration
-- [QR Code Import Guide](#qr-code-import) - How to scan and import QR codes
 - [Troubleshooting Guide](docs/server-setup/TROUBLESHOOTING.md) - Common issues and solutions
 - [Privacy Features](#privacy-features) - How we protect your privacy
 
@@ -114,75 +111,6 @@ Tap "Connect" and you're protected! 🎉
 - [Building from Source](#building-from-source) - Compilation instructions
 - [Testing](#testing) - Running tests
 - [Contributing](#contributing) - How to contribute
-
-## WireGuard Setup Guide
-
-### Prerequisites
-- Ubuntu 20.04, 22.04, or 24.04 LTS server
-- Root access (sudo)
-- Public IP address
-
-### Server Setup
-
-1. **Run the setup script**:
-```bash
-sudo ./setup-wireguard.sh
-```
-
-2. **Follow the prompts**:
-   - Confirm your public IP
-   - Choose whether to generate a preshared key (recommended)
-   - Wait for installation to complete
-
-3. **Save the configuration**:
-   - QR code will be displayed in terminal
-   - Configuration saved to `~/wireguard-client/client.conf`
-   - QR code image saved to `~/wireguard-client/client-qr.png`
-
-### App Configuration
-
-**Method 1: QR Code (Easiest)**
-1. Open SelfProxy app
-2. Tap "+" to add profile
-3. Select "WireGuard"
-4. Tap "Scan QR Code"
-5. Scan the QR code from your terminal
-
-**Method 2: Import File**
-1. Transfer `client.conf` to your phone
-2. Open SelfProxy app
-3. Tap "+" to add profile
-4. Select "WireGuard"
-5. Tap "Import Config"
-6. Select the config file
-
-**Method 3: Manual Entry**
-1. Open SelfProxy app
-2. Tap "+" to add profile
-3. Select "WireGuard"
-4. Enter the following details:
-   - **Name**: Any name (e.g., "My VPN Server")
-   - **Server Address**: Your server's IP or hostname
-   - **Port**: 51820 (or custom port)
-   - **Private Key**: From `client.conf` [Interface] section
-   - **Public Key**: From `client.conf` [Peer] section
-   - **Allowed IPs**: `0.0.0.0/0, ::/0` (route all traffic)
-   - **DNS**: `1.1.1.1, 1.0.0.1` (or custom DNS)
-
-### Advanced Options
-
-**Persistent Keepalive**:
-- Set to `25` if behind NAT
-- Set to `0` to disable (saves battery)
-
-**Preshared Key**:
-- Optional post-quantum security
-- Generated by setup script if requested
-- Copy from `client.conf` [Peer] section
-
-**MTU**:
-- Default: `1420`
-- Reduce if experiencing connection issues: `1400`, `1380`
 
 ## VLESS Setup Guide
 
@@ -288,17 +216,17 @@ Reality provides advanced traffic obfuscation by mimicking legitimate HTTPS traf
 - **Public Key**: Generated by setup script
 - **Short ID**: Random identifier
 
-## QR Code Import
+## URI Import
 
-### Scanning QR Codes
+### Importing VLESS URIs
 
-1. **Open SelfProxy app**
-2. **Tap "+" to add profile**
-3. **Select "WireGuard"**
-4. **Tap "Scan QR Code"**
-5. **Grant camera permission** (if prompted)
-6. **Point camera at QR code**
-7. **Wait for automatic detection**
+1. **Copy the VLESS URI** from your server setup
+2. **Open SelfProxy app**
+3. **Tap "+" to add profile**
+4. **Tap "Import URI"**
+5. **Paste the URI**
+6. **Tap "Import"**
+7. **Profile is ready to use**
 8. **Review and save profile**
 
 ### QR Code Format
@@ -414,7 +342,7 @@ The application follows clean architecture principles with clear separation of c
 
 **Domain Layer** (Business Logic):
 - Connection Manager: Protocol-agnostic connection management
-- Protocol Adapters: WireGuard and VLESS implementations
+- Protocol Adapter: VLESS implementation
 - Auto-Reconnect Service: Automatic recovery
 - Traffic Monitor: Bandwidth tracking
 - Network Monitor: Network change detection
@@ -428,7 +356,6 @@ The application follows clean architecture principles with clear separation of c
 
 **Platform Layer** (Android-Specific):
 - VPN Service: TUN interface and packet routing
-- WireGuard Adapter: WireGuard protocol implementation
 - VLESS Adapter: VLESS protocol implementation
 - Android Credential Store: Keystore integration
 
@@ -473,7 +400,6 @@ app/
 │   │   └── config/                  # Config parsers/exporters
 │   ├── platform/                    # Android-specific
 │   │   ├── vpn/                     # VPN service
-│   │   ├── wireguard/               # WireGuard adapter
 │   │   ├── vless/                   # VLESS adapter
 │   │   └── security/                # Credential store
 │   └── di/                          # Dependency injection
@@ -590,7 +516,7 @@ See the [Troubleshooting Guide](docs/server-setup/TROUBLESHOOTING.md) for common
 - Check DNS settings
 
 **Battery drain**:
-- Use WireGuard instead of VLESS
+- Optimize transport protocol selection
 - Disable persistent keepalive if not needed
 - Check for app routing issues
 
@@ -617,10 +543,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 ## Acknowledgments
 
-- [WireGuard](https://www.wireguard.com/) - Fast, modern VPN protocol
 - [Xray-core](https://github.com/XTLS/Xray-core) - VLESS protocol implementation
 - [AndroidLibXrayLite](https://github.com/2dust/AndroidLibXrayLite) - Android Xray library
-- [wireguard-android](https://git.zx2c4.com/wireguard-android/) - WireGuard Android library
 
 ## Support
 
@@ -635,8 +559,9 @@ To report security vulnerabilities, please email security@example.com (do not op
 ## Roadmap
 
 ### Current Version (v1.0)
-- ✅ WireGuard support
-- ✅ VLESS support
+- ✅ VLESS protocol support
+- ✅ Multiple transport protocols (TCP, WebSocket, gRPC, HTTP/2)
+- ✅ Reality protocol support
 - ✅ Profile management
 - ✅ Per-app routing
 - ✅ Auto-reconnection
@@ -649,7 +574,7 @@ To report security vulnerabilities, please email security@example.com (do not op
 - [ ] Tasker integration
 - [ ] Quick settings tile
 - [ ] Widget support
-- [ ] Additional protocols (if requested)
+- [ ] Additional VLESS features (VMess compatibility, custom routing)
 
 ---
 

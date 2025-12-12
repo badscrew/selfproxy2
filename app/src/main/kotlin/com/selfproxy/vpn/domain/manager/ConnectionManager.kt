@@ -19,10 +19,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 /**
- * Manages VPN connections across all protocols.
+ * Manages VPN connections using VLESS protocol.
  * 
  * Responsibilities:
- * - Protocol adapter selection based on profile type
  * - Connection state management
  * - Error handling and error message generation
  * - Integration with auto-reconnect service
@@ -31,7 +30,6 @@ import kotlinx.coroutines.launch
  * Requirements: 3.3, 3.6, 3.7, 11.1, 11.3, 11.5
  */
 class ConnectionManager(
-    private val wireGuardAdapter: ProtocolAdapter,
     private val vlessAdapter: ProtocolAdapter,
     private val profileRepository: ProfileRepository,
     private val batteryOptimizationManager: BatteryOptimizationManager? = null,
@@ -219,10 +217,8 @@ class ConnectionManager(
      * @return The corresponding protocol adapter
      */
     private fun selectAdapter(protocol: Protocol): ProtocolAdapter {
-        return when (protocol) {
-            Protocol.WIREGUARD -> wireGuardAdapter
-            Protocol.VLESS -> vlessAdapter
-        }
+        require(protocol == Protocol.VLESS) { "Only VLESS protocol is supported" }
+        return vlessAdapter
     }
     
     /**
