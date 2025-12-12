@@ -121,16 +121,15 @@ class XrayCore(
             // Inbound: TUN or SOCKS5
             if (tunFd != null) {
                 // TUN mode - Xray handles packet routing
+                // Note: AndroidLibXrayLite may not support direct TUN fd passing
+                // Using SOCKS5 mode instead - will need tun2socks for packet routing
                 append("\"inbounds\":[{")
-                append("\"protocol\":\"tun\",")
-                append("\"tag\":\"tun-in\",")
+                append("\"port\":$SOCKS_PORT,")
+                append("\"listen\":\"127.0.0.1\",")
+                append("\"protocol\":\"socks\",")
                 append("\"settings\":{")
-                append("\"fd\":$tunFd,")
-                append("\"mtu\":1500,")
-                append("\"sniffing\":{")
-                append("\"enabled\":true,")
-                append("\"destOverride\":[\"http\",\"tls\"]")
-                append("}")
+                append("\"auth\":\"noauth\",")
+                append("\"udp\":true")
                 append("}")
                 append("}],")
             } else {

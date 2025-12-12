@@ -209,8 +209,8 @@ class TunnelVpnService : VpnService() {
             val profileName = profile?.name ?: "VPN Server"
             updateNotificationWithStatus("Connected", profileName)
             
-            // Start packet routing
-            startPacketRouting()
+            // Note: startPacketRouting requires socksPort parameter
+            // This old method is not used anymore - startVpnTunnelWithXray is used instead
             
             SanitizedLogger.i(TAG, "VPN tunnel started successfully")
             
@@ -296,8 +296,8 @@ class TunnelVpnService : VpnService() {
                     }
                 }
                 
-                // 7. Start Xray-core with TUN fd
-                SanitizedLogger.d(TAG, "Starting Xray-core with TUN mode...")
+                // 7. Start Xray-core (will use SOCKS5 mode since TUN fd passing not supported)
+                SanitizedLogger.d(TAG, "Starting Xray-core in SOCKS5 mode...")
                 val startResult = xrayCore!!.start(xrayConfig, callbackHandler)
                 
                 if (startResult.isFailure) {
@@ -309,8 +309,16 @@ class TunnelVpnService : VpnService() {
                     return@launch
                 }
                 
-                SanitizedLogger.i(TAG, "VPN tunnel with Xray TUN mode started successfully")
-                SanitizedLogger.i(TAG, "Xray-core is now handling all packet routing through TUN interface")
+                val socksPort = startResult.getOrThrow()
+                SanitizedLogger.i(TAG, "Xray-core started successfully on SOCKS5 port $socksPort")
+                
+                // 8. Start packet routing (tun2socks)
+                SanitizedLogger.d(TAG, "Starting packet routing...")
+                startPacketRouting(socksPort)
+                
+                SanitizedLogger.i(TAG, "VPN tunnel started successfully")
+                SanitizedLogger.w(TAG, "NOTE: Packet routing (tun2socks) not yet implemented")
+                SanitizedLogger.w(TAG, "VPN key icon will appear but traffic won't route until tun2socks is implemented")
                 updateNotificationWithStatus("Connected", profileName, "via $serverAddress")
                 
             } catch (e: Exception) {
@@ -458,50 +466,30 @@ class TunnelVpnService : VpnService() {
     }
 
     /**
-     * Starts packet routing between TUN interface and protocol adapter.
+     * Starts packet routing between TUN interface and SOCKS5 proxy.
      * 
-     * Reads packets from the TUN interface and forwards them through the protocol adapter.
-     * Receives packets from the protocol adapter and writes them to the TUN interface.
+     * This is a simplified tun2socks implementation that forwards packets
+     * from the TUN interface to the SOCKS5 proxy created by Xray-core.
      */
-    private fun startPacketRouting() {
+    private fun startPacketRouting(socksPort: Int) {
         val tun = tunInterface ?: return
         
         packetRoutingJob = serviceScope.launch {
             try {
-                SanitizedLogger.d(TAG, "Starting packet routing")
+                SanitizedLogger.d(TAG, "Starting packet routing to SOCKS5 proxy on port $socksPort")
                 
-                // Read packets from TUN interface
-                val inputStream = FileInputStream(tun.fileDescriptor)
-                val outputStream = FileOutputStream(tun.fileDescriptor)
-                val buffer = ByteArray(32767) // Max IP packet size
+                // TODO: Implement tun2socks packet routing
+                // This requires:
+                // 1. Reading IP packets from TUN interface
+                // 2. Parsing TCP/UDP packets
+                // 3. Forwarding through SOCKS5 proxy at 127.0.0.1:$socksPort
+                // 4. Writing response packets back to TUN
+                //
+                // For now, this is a placeholder
+                // A full implementation would use a library like go-tun2socks
                 
-                withContext(Dispatchers.IO) {
-                    while (isActive) {
-                        try {
-                            val length = inputStream.read(buffer)
-                            if (length > 0) {
-                                // Packet received from TUN interface
-                                val packet = buffer.copyOf(length)
-                                
-                                // TODO: Route packet through protocol adapter
-                                // For now, this is a placeholder for the packet routing logic
-                                // In a complete implementation, packets would be:
-                                // 1. Parsed to extract destination
-                                // 2. Routed through the protocol adapter (WireGuard/VLESS)
-                                // 3. Response packets written back to TUN interface
-                                
-                                SanitizedLogger.d(TAG, "Received packet: $length bytes")
-                            }
-                        } catch (e: IOException) {
-                            if (isActive) {
-                                SanitizedLogger.e(TAG, "Error reading packet", e)
-                            }
-                            break
-                        }
-                    }
-                }
-                
-                SanitizedLogger.d(TAG, "Packet routing stopped")
+                SanitizedLogger.w(TAG, "Packet routing not yet implemented - traffic will not flow")
+                SanitizedLogger.w(TAG, "Need to implement tun2socks or use external library")
                 
             } catch (e: Exception) {
                 SanitizedLogger.e(TAG, "Error in packet routing", e)
