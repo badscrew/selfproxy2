@@ -322,7 +322,9 @@ fun ProfileManagementApp(
             LaunchedEffect(profileToEdit) {
                 val profile = profileToEdit
                 storedUuid = if (profile != null && profile.protocol == Protocol.VLESS) {
-                    profileViewModel.getStoredUuid(profile.id)
+                    val uuid = profileViewModel.getStoredUuid(profile.id)
+                    android.util.Log.d("ProfileForm", "Loading UUID for profile ${profile.id}: $uuid")
+                    uuid
                 } else {
                     null
                 }

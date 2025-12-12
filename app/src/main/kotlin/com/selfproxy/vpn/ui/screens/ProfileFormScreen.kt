@@ -42,6 +42,14 @@ fun ProfileFormScreen(
     
     // VLESS fields
     var vlessUuid by remember { mutableStateOf(storedUuid ?: "") } // UUID from CredentialStore or empty for new profiles
+    
+    // Update UUID when storedUuid changes (after loading from CredentialStore)
+    LaunchedEffect(storedUuid) {
+        android.util.Log.d("ProfileFormScreen", "Received storedUuid: $storedUuid")
+        if (storedUuid != null) {
+            vlessUuid = storedUuid
+        }
+    }
     var vlessTransport by remember { mutableStateOf(profile?.vlessConfigJson?.let { profile.getVlessConfig().transport } ?: TransportProtocol.TCP) }
     var vlessFlowControl by remember { mutableStateOf(profile?.vlessConfigJson?.let { profile.getVlessConfig().flowControl } ?: FlowControl.NONE) }
     
