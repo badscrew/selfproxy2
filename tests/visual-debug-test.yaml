@@ -1,0 +1,31 @@
+# Visual Debug Test - Takes screenshots at each step
+# Purpose: Visual debugging with screenshots
+# Usage: maestro test tests/visual-debug-test.yaml
+# Created: 2025-12-12
+
+appId: com.selfproxy.vpn.debug
+---
+
+# Launch and capture initial state
+- launchApp
+- takeScreenshot: "01-app-launched.png"
+
+# Wait for loading
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: "02-app-loaded.png"
+
+# Try to find and interact with profile elements
+- tapOn:
+    text: "(?i).*profile.*"
+    optional: true
+- takeScreenshot: "03-after-profile-tap.png"
+
+# Try to find and interact with connect elements
+- tapOn:
+    text: "(?i).*connect.*"
+    optional: true
+- takeScreenshot: "04-after-connect-tap.png"
+
+# Final state
+- takeScreenshot: "05-final-state.png"

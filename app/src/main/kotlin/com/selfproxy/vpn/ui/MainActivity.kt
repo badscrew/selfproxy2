@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.VpnService
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -18,7 +19,6 @@ import com.selfproxy.vpn.data.model.ServerProfile
 import com.selfproxy.vpn.domain.model.Protocol
 import com.selfproxy.vpn.ui.screens.ProfileFormScreen
 import com.selfproxy.vpn.ui.screens.ProfileListScreen
-import com.selfproxy.vpn.ui.screens.WelcomeScreen
 import com.selfproxy.vpn.ui.theme.SelfProxyTheme
 import com.selfproxy.vpn.ui.viewmodel.ProfileViewModel
 import com.selfproxy.vpn.ui.viewmodel.ConnectionViewModel
@@ -167,12 +167,8 @@ fun ProfileManagementApp(
     var currentScreen by remember { mutableStateOf<Screen>(Screen.Connection) }
     var profileToEdit by remember { mutableStateOf<ServerProfile?>(null) }
     var selectedProtocolForNewProfile by remember { mutableStateOf<Protocol?>(null) }
-    var hasSeenWelcome by remember { mutableStateOf(false) }
     
     val context = LocalContext.current
-    
-    // Show welcome screen if no profiles exist and user hasn't seen it yet
-    val shouldShowWelcome = profiles.isEmpty() && !hasSeenWelcome
     
     // Handle VPN permission state changes
     LaunchedEffect(vpnPermissionState) {
@@ -194,26 +190,17 @@ fun ProfileManagementApp(
         }
     }
     
-    // Show welcome screen if appropriate
-    if (shouldShowWelcome) {
-        WelcomeScreen(
-            onCreateProfile = { protocol ->
-                hasSeenWelcome = true
-                selectedProtocolForNewProfile = protocol
-                profileToEdit = null
-                currentScreen = Screen.ProfileForm
-            },
-            onImportConfig = { configText ->
-                hasSeenWelcome = true
-                // Import the configuration and create a profile
-                profileViewModel.importConfiguration(configText)
-                currentScreen = Screen.ProfileList
-            },
-            onSkip = {
-                hasSeenWelcome = true
+    // Handle system back button
+    BackHandler(enabled = currentScreen != Screen.Connection) {
+        when (currentScreen) {
+            Screen.ProfileList -> currentScreen = Screen.Connection
+            Screen.ProfileForm -> currentScreen = Screen.ProfileList
+            Screen.Settings -> currentScreen = Screen.Connection
+            Screen.AppRouting -> currentScreen = Screen.Settings
+            else -> {
+                // Connection screen - let system handle back (exit app)
             }
-        )
-        return
+        }
     }
     
     when (currentScreen) {
@@ -221,6 +208,7 @@ fun ProfileManagementApp(
             com.selfproxy.vpn.ui.screens.ConnectionScreen(
                 connectionState = connectionState,
                 currentProfile = currentProfile,
+                allProfiles = profiles,
                 statistics = statistics,
                 testResult = testResult,
                 isTesting = isTesting,
@@ -320,6 +308,10 @@ fun ProfileManagementApp(
                     )
                     profileToEdit = copiedProfile
                     currentScreen = Screen.ProfileForm
+                },
+                onImportQrCode = { qrCode ->
+                    // Import configuration from QR code
+                    profileViewModel.importConfiguration(qrCode)
                 }
             )
         }
@@ -327,11 +319,11 @@ fun ProfileManagementApp(
             ProfileFormScreen(
                 profile = profileToEdit,
                 initialProtocol = selectedProtocolForNewProfile,
-                onSave = { profile ->
+                onSave = { profile, presharedKey ->
                     if (profile.id == 0L) {
-                        profileViewModel.createProfile(profile)
+                        profileViewModel.createProfile(profile, presharedKey)
                     } else {
-                        profileViewModel.updateProfile(profile)
+                        profileViewModel.updateProfile(profile, presharedKey)
                     }
                     selectedProtocolForNewProfile = null
                     currentScreen = Screen.ProfileList

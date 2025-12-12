@@ -60,11 +60,14 @@ class ProfileViewModel(
     
     /**
      * Creates a new profile.
+     * 
+     * @param profile The profile to create
+     * @param presharedKey Optional WireGuard preshared key to store
      */
-    fun createProfile(profile: ServerProfile) {
+    fun createProfile(profile: ServerProfile, presharedKey: String? = null) {
         viewModelScope.launch {
             _uiState.value = ProfileUiState.Loading
-            profileRepository.createProfile(profile)
+            profileRepository.createProfile(profile, presharedKey)
                 .onSuccess { id ->
                     _uiState.value = ProfileUiState.Success("Profile created successfully")
                 }
@@ -76,11 +79,14 @@ class ProfileViewModel(
     
     /**
      * Updates an existing profile.
+     * 
+     * @param profile The profile to update
+     * @param presharedKey Optional WireGuard preshared key to store/update
      */
-    fun updateProfile(profile: ServerProfile) {
+    fun updateProfile(profile: ServerProfile, presharedKey: String? = null) {
         viewModelScope.launch {
             _uiState.value = ProfileUiState.Loading
-            profileRepository.updateProfile(profile)
+            profileRepository.updateProfile(profile, presharedKey)
                 .onSuccess {
                     _uiState.value = ProfileUiState.Success("Profile updated successfully")
                 }

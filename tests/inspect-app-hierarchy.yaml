@@ -1,0 +1,56 @@
+# SSH Tunnel Proxy - UI Hierarchy Inspection
+# Purpose: Inspect the actual UI hierarchy to understand available elements
+# Usage: maestro test inspect-app-hierarchy.yaml
+# Created: 2025-12-12
+# Note: Temporary test file for development - not part of production code
+
+appId: com.selfproxy.vpn.debug
+---
+
+# Launch the app
+- launchApp
+
+# Wait for app to load
+- waitForAnimationToEnd:
+    timeout: 5000
+
+# Try to find common UI elements that might exist
+- runFlow:
+    when:
+      visible: "Add"
+    steps:
+      - tapOn: "Add"
+
+- runFlow:
+    when:
+      visible: "+"
+    steps:
+      - tapOn: "+"
+
+# Try to find any buttons or text
+- runFlow:
+    when:
+      visible: 
+        text: ".*Server.*"
+    steps:
+      - tapOn:
+          text: ".*Server.*"
+
+# Check for floating action button or menu
+- runFlow:
+    when:
+      visible:
+        id: ".*fab.*"
+    steps:
+      - tapOn:
+          id: ".*fab.*"
+
+# Try common navigation patterns
+- runFlow:
+    when:
+      visible: "Menu"
+    steps:
+      - tapOn: "Menu"
+
+# Take a final screenshot
+- takeScreenshot: "hierarchy-inspection.png"

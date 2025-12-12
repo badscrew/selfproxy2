@@ -28,7 +28,7 @@ import com.selfproxy.vpn.ui.components.ProtocolRecommendationsDialog
 fun ProfileFormScreen(
     profile: ServerProfile? = null,
     initialProtocol: Protocol? = null,
-    onSave: (ServerProfile) -> Unit,
+    onSave: (ServerProfile, String?) -> Unit, // Added presharedKey parameter
     onCancel: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -41,6 +41,7 @@ fun ProfileFormScreen(
     
     // WireGuard fields
     var wgPublicKey by remember { mutableStateOf(profile?.wireGuardConfigJson?.let { profile.getWireGuardConfig().publicKey } ?: "") }
+    var wgPresharedKey by remember { mutableStateOf("") } // Will be loaded from credential store
     var wgEndpoint by remember { mutableStateOf(profile?.wireGuardConfigJson?.let { profile.getWireGuardConfig().endpoint } ?: "") }
     var wgAllowedIPs by remember { mutableStateOf(profile?.wireGuardConfigJson?.let { profile.getWireGuardConfig().allowedIPs.joinToString(", ") } ?: "0.0.0.0/0, ::/0") }
     var wgPersistentKeepalive by remember { mutableStateOf(profile?.wireGuardConfigJson?.let { profile.getWireGuardConfig().persistentKeepalive?.toString() } ?: "") }
@@ -150,6 +151,8 @@ fun ProfileFormScreen(
                     WireGuardConfigForm(
                         publicKey = wgPublicKey,
                         onPublicKeyChange = { wgPublicKey = it },
+                        presharedKey = wgPresharedKey,
+                        onPresharedKeyChange = { wgPresharedKey = it },
                         endpoint = wgEndpoint,
                         onEndpointChange = { wgEndpoint = it },
                         allowedIPs = wgAllowedIPs,
@@ -157,7 +160,8 @@ fun ProfileFormScreen(
                         persistentKeepalive = wgPersistentKeepalive,
                         onPersistentKeepaliveChange = { wgPersistentKeepalive = it },
                         mtu = wgMtu,
-                        onMtuChange = { wgMtu = it }
+                        onMtuChange = { wgMtu = it },
+                        isEditing = isEditing
                     )
                 }
                 Protocol.VLESS -> {
@@ -225,7 +229,14 @@ fun ProfileFormScreen(
                             }
                         }
                         
-                        onSave(newProfile)
+                        // Pass preshared key only for WireGuard profiles and only if not empty
+                        val presharedKeyToSave = if (selectedProtocol == Protocol.WIREGUARD && wgPresharedKey.isNotBlank()) {
+                            wgPresharedKey
+                        } else {
+                            null
+                        }
+                        
+                        onSave(newProfile, presharedKeyToSave)
                     } catch (e: Exception) {
                         errorMessage = e.message ?: "Invalid configuration"
                     }
@@ -346,6 +357,8 @@ private fun ProtocolOption(
 private fun WireGuardConfigForm(
     publicKey: String,
     onPublicKeyChange: (String) -> Unit,
+    presharedKey: String,
+    onPresharedKeyChange: (String) -> Unit,
     endpoint: String,
     onEndpointChange: (String) -> Unit,
     allowedIPs: String,
@@ -354,6 +367,7 @@ private fun WireGuardConfigForm(
     onPersistentKeepaliveChange: (String) -> Unit,
     mtu: String,
     onMtuChange: (String) -> Unit,
+    isEditing: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -365,12 +379,54 @@ private fun WireGuardConfigForm(
             style = MaterialTheme.typography.titleMedium
         )
         
+        // Client Key Information
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            )
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "Client Keys",
+                    style = MaterialTheme.typography.titleSmall
+                )
+                if (isEditing) {
+                    Text(
+                        text = "Your client keys were generated when this profile was created. The private key is stored securely on your device.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    Text(
+                        text = "A new key pair will be generated automatically when you save this profile. You'll need to provide your public key to the server administrator.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+        
         OutlinedTextField(
             value = publicKey,
             onValueChange = onPublicKeyChange,
             label = { Text("Server Public Key") },
+            supportingText = { Text("Enter the public key provided by your WireGuard server administrator") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
+        )
+        
+        OutlinedTextField(
+            value = presharedKey,
+            onValueChange = onPresharedKeyChange,
+            label = { Text("Preshared Key (Optional)") },
+            supportingText = { Text("Enter the preshared key if your server requires one for additional security") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            placeholder = { Text("Leave empty if not required") }
         )
         
         OutlinedTextField(

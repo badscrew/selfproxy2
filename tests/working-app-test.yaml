@@ -1,0 +1,58 @@
+# SSH Tunnel Proxy - Working App Test
+# Purpose: Test the app based on discovered UI elements
+# Usage: maestro test working-app-test.yaml
+# Created: 2025-12-12
+# Note: Temporary test file for development - not part of production code
+
+appId: com.selfproxy.vpn.debug
+---
+
+# Test 1: Basic App Launch and UI Discovery
+- launchApp
+- waitForAnimationToEnd:
+    timeout: 5000
+
+# Try to interact with profile-related elements
+- tapOn:
+    text: "(?i).*profile.*"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Try to interact with connect-related elements  
+- tapOn:
+    text: "(?i).*connect.*"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Take screenshot of current state
+- takeScreenshot: "after-interactions.png"
+
+---
+
+# Test 2: Try to find and tap any buttons
+- launchApp
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# Look for common button patterns
+- tapOn:
+    text: "(?i).*(add|new|create|plus).*"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Look for menu or navigation
+- tapOn:
+    text: "(?i).*(menu|more|options).*"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Take final screenshot
+- takeScreenshot: "final-state.png"

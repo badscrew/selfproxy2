@@ -121,7 +121,7 @@ class VlessAdapter(
             // xrayInstance = XrayCore.create(context, xrayConfig)
             // xrayInstance.start()
             
-            // For now, simulate connection establishment
+            // Establish connection and verify it's working before marking as connected
             val connected = establishConnection(profile, uuid, vlessConfig)
             
             if (!connected.first) {
@@ -134,9 +134,7 @@ class VlessAdapter(
             currentProfile = profile
             connectionStartTime = Instant.now()
             
-            // Start statistics monitoring
-            startStatisticsMonitoring()
-            
+            // Only create connection object and mark as connected AFTER establishment succeeds
             val connection = Connection(
                 profileId = profile.id,
                 protocol = Protocol.VLESS,
@@ -145,6 +143,9 @@ class VlessAdapter(
             )
             
             _connectionState.value = ConnectionState.Connected(connection)
+            
+            // Start statistics monitoring only after successful connection
+            startStatisticsMonitoring()
             
             Result.success(connection)
             

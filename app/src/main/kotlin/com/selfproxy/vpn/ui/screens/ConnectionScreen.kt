@@ -39,6 +39,7 @@ import kotlin.time.Duration.Companion.milliseconds
 fun ConnectionScreen(
     connectionState: ConnectionState,
     currentProfile: ServerProfile?,
+    allProfiles: List<ServerProfile> = emptyList(),
     statistics: ConnectionStatistics?,
     testResult: ConnectionTestResult?,
     isTesting: Boolean,
@@ -64,6 +65,7 @@ fun ConnectionScreen(
     onDismissPermissionDenied: () -> Unit = {}
 ) {
     var showDiagnostics by remember { mutableStateOf(false) }
+    
     Scaffold(
         topBar = {
             TopAppBar(
@@ -71,8 +73,8 @@ fun ConnectionScreen(
                 navigationIcon = {
                     IconButton(onClick = onSelectProfile) {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Back to Profiles",
+                            imageVector = Icons.Default.List,
+                            contentDescription = "Manage Profiles",
                             tint = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
@@ -102,16 +104,20 @@ fun ConnectionScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+
+            
             // Connection Status Card
             ConnectionStatusCard(
                 connectionState = connectionState,
-                currentProfile = currentProfile
+                currentProfile = currentProfile,
+                hasProfiles = allProfiles.isNotEmpty()
             )
             
             // Connect/Disconnect Button
             ConnectionButton(
                 connectionState = connectionState,
                 currentProfile = currentProfile,
+                hasProfiles = allProfiles.isNotEmpty(),
                 onConnect = onConnect,
                 onDisconnect = onDisconnect,
                 onSelectProfile = onSelectProfile
@@ -194,14 +200,16 @@ fun ConnectionScreen(
 }
 
 /**
- * Card showing current connection status.
+ * Card showing current connection status with improved feedback.
  * 
  * Requirement 7.1: Display connection status
+ * Task 2: Improve connection state feedback
  */
 @Composable
 private fun ConnectionStatusCard(
     connectionState: ConnectionState,
-    currentProfile: ServerProfile?
+    currentProfile: ServerProfile?,
+    hasProfiles: Boolean = true
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -221,42 +229,80 @@ private fun ConnectionStatusCard(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Status Icon
-            Icon(
-                imageVector = when (connectionState) {
-                    is ConnectionState.Connected -> Icons.Default.CheckCircle
-                    is ConnectionState.Connecting, is ConnectionState.Reconnecting -> Icons.Default.Refresh
-                    is ConnectionState.Error -> Icons.Default.Error
-                    else -> Icons.Default.VpnKey
-                },
-                contentDescription = "Connection Status",
-                modifier = Modifier.size(64.dp),
-                tint = when (connectionState) {
-                    is ConnectionState.Connected -> ConnectedGreen
-                    is ConnectionState.Connecting, is ConnectionState.Reconnecting -> ConnectingOrange
-                    is ConnectionState.Error -> ErrorRed
-                    else -> DisconnectedGray
+            // Status Icon with Progress Indicator
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.size(80.dp)
+            ) {
+                // Background circle for progress states
+                if (connectionState is ConnectionState.Connecting || 
+                    connectionState is ConnectionState.Reconnecting) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(80.dp),
+                        color = ConnectingOrange,
+                        strokeWidth = 3.dp
+                    )
                 }
-            )
+                
+                // Main status icon
+                Icon(
+                    imageVector = when (connectionState) {
+                        is ConnectionState.Connected -> Icons.Default.CheckCircle
+                        is ConnectionState.Connecting -> Icons.Default.Sync
+                        is ConnectionState.Reconnecting -> Icons.Default.SyncProblem
+                        is ConnectionState.Error -> Icons.Default.Error
+                        else -> Icons.Default.VpnKey
+                    },
+                    contentDescription = "Connection Status",
+                    modifier = Modifier.size(48.dp),
+                    tint = when (connectionState) {
+                        is ConnectionState.Connected -> ConnectedGreen
+                        is ConnectionState.Connecting, is ConnectionState.Reconnecting -> ConnectingOrange
+                        is ConnectionState.Error -> ErrorRed
+                        else -> DisconnectedGray
+                    }
+                )
+            }
             
-            // Status Text
-            Text(
-                text = when (connectionState) {
-                    is ConnectionState.Connected -> "Connected"
-                    is ConnectionState.Connecting -> "Connecting..."
-                    is ConnectionState.Reconnecting -> "Reconnecting..."
-                    is ConnectionState.Error -> "Connection Failed"
-                    else -> "Disconnected"
-                },
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = when (connectionState) {
-                    is ConnectionState.Connected -> ConnectedGreen
-                    is ConnectionState.Connecting, is ConnectionState.Reconnecting -> ConnectingOrange
-                    is ConnectionState.Error -> ErrorRed
-                    else -> DisconnectedGray
-                }
-            )
+            // Status Text with Descriptive Messages
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = when (connectionState) {
+                        is ConnectionState.Connected -> "Connected"
+                        is ConnectionState.Connecting -> "Connecting"
+                        is ConnectionState.Reconnecting -> "Reconnecting"
+                        is ConnectionState.Error -> "Connection Failed"
+                        else -> "Disconnected"
+                    },
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = when (connectionState) {
+                        is ConnectionState.Connected -> ConnectedGreen
+                        is ConnectionState.Connecting, is ConnectionState.Reconnecting -> ConnectingOrange
+                        is ConnectionState.Error -> ErrorRed
+                        else -> DisconnectedGray
+                    }
+                )
+                
+                // Descriptive status message
+                Text(
+                    text = when {
+                        !hasProfiles -> "Create your first VPN profile to get started"
+                        connectionState is ConnectionState.Connected -> "Your traffic is secure and private"
+                        connectionState is ConnectionState.Connecting -> "Establishing secure tunnel..."
+                        connectionState is ConnectionState.Reconnecting -> "Restoring connection..."
+                        connectionState is ConnectionState.Error -> "Unable to establish connection"
+                        currentProfile == null -> "Select a profile to connect"
+                        else -> "Ready to connect"
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+            }
             
             // Profile Info
             if (currentProfile != null) {
@@ -308,6 +354,7 @@ private fun ProtocolBadge(protocol: Protocol) {
 private fun ConnectionButton(
     connectionState: ConnectionState,
     currentProfile: ServerProfile?,
+    hasProfiles: Boolean = true,
     onConnect: (Long) -> Unit,
     onDisconnect: () -> Unit,
     onSelectProfile: () -> Unit
@@ -333,32 +380,152 @@ private fun ConnectionButton(
             }
         }
         is ConnectionState.Connecting, is ConnectionState.Reconnecting -> {
-            Button(
-                onClick = { },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                enabled = false
-            ) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    color = MaterialTheme.colorScheme.onPrimary
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = if (connectionState is ConnectionState.Reconnecting) "Reconnecting..." else "Connecting...",
-                    style = MaterialTheme.typography.titleMedium
-                )
-            }
-        }
-        is ConnectionState.Error -> {
-            // Error state - show retry and select different profile options
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                Button(
+                    onClick = { },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    enabled = false,
+                    colors = ButtonDefaults.buttonColors(
+                        disabledContainerColor = ConnectingOrange.copy(alpha = 0.7f),
+                        disabledContentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        strokeWidth = 2.dp
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = if (connectionState is ConnectionState.Reconnecting) "Reconnecting..." else "Connecting...",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+                
+                // Cancel button for connecting state
+                OutlinedButton(
+                    onClick = onDisconnect,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Cancel,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Cancel")
+                }
+            }
+        }
+        is ConnectionState.Error -> {
+            // Error state - show retry and alternative options
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
                 if (currentProfile != null) {
-                    // Retry button
+                    // Primary retry button
+                    Button(
+                        onClick = { onConnect(currentProfile.id) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Try Again", style = MaterialTheme.typography.titleMedium)
+                    }
+                    
+                    // Secondary actions row
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = onSelectProfile,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.SwapHoriz,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Switch Profile")
+                        }
+                        
+                        OutlinedButton(
+                            onClick = { /* TODO: Open troubleshooting guide */ },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Help,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Help")
+                        }
+                    }
+                } else {
+                    // No profile selected
+                    Button(
+                        onClick = onSelectProfile,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Select Profile", style = MaterialTheme.typography.titleMedium)
+                    }
+                }
+            }
+        }
+        else -> {
+            // Disconnected state
+            when {
+                !hasProfiles -> {
+                    // No profiles exist - show create profile button
+                    Button(
+                        onClick = onSelectProfile,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Create Profile", style = MaterialTheme.typography.titleMedium)
+                    }
+                }
+                currentProfile != null -> {
+                    // Profile selected - show connect button
                     Button(
                         onClick = { onConnect(currentProfile.id) },
                         modifier = Modifier
@@ -369,69 +536,30 @@ private fun ConnectionButton(
                         )
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Refresh,
+                            imageVector = Icons.Default.VpnKey,
                             contentDescription = null,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Retry Connection", style = MaterialTheme.typography.titleMedium)
+                        Text("Connect", style = MaterialTheme.typography.titleMedium)
                     }
                 }
-                
-                // Select different profile button
-                OutlinedButton(
-                    onClick = onSelectProfile,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.List,
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = if (currentProfile != null) "Select Different Profile" else "Select Profile",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                }
-            }
-        }
-        else -> {
-            // Disconnected state
-            if (currentProfile != null) {
-                Button(
-                    onClick = { onConnect(currentProfile.id) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = ConnectedGreen
-                    )
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.VpnKey,
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Connect", style = MaterialTheme.typography.titleMedium)
-                }
-            } else {
-                OutlinedButton(
-                    onClick = onSelectProfile,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Select Profile", style = MaterialTheme.typography.titleMedium)
+                else -> {
+                    // Profiles exist but none selected
+                    OutlinedButton(
+                        onClick = onSelectProfile,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.List,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Select Profile", style = MaterialTheme.typography.titleMedium)
+                    }
                 }
             }
         }
@@ -907,3 +1035,5 @@ private fun VpnPermissionDeniedDialog(
         }
     )
 }
+
+

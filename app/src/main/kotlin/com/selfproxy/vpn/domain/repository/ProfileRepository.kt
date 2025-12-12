@@ -18,9 +18,11 @@ interface ProfileRepository {
      * Validates the profile before insertion and ensures all required fields are present.
      * 
      * @param profile The profile to create
+     * @param presharedKey Optional WireGuard preshared key to store
+     * @param privateKey Optional WireGuard private key (for imports - if provided, use this instead of generating)
      * @return Result containing the ID of the created profile, or an error
      */
-    suspend fun createProfile(profile: ServerProfile): Result<Long>
+    suspend fun createProfile(profile: ServerProfile, presharedKey: String? = null, privateKey: String? = null): Result<Long>
     
     /**
      * Retrieves a profile by its ID.
@@ -70,9 +72,10 @@ interface ProfileRepository {
      * Validates the profile before updating.
      * 
      * @param profile The profile to update (must have a valid ID)
+     * @param presharedKey Optional WireGuard preshared key to store/update
      * @return Result indicating success or failure
      */
-    suspend fun updateProfile(profile: ServerProfile): Result<Unit>
+    suspend fun updateProfile(profile: ServerProfile, presharedKey: String? = null): Result<Unit>
     
     /**
      * Deletes a profile by its ID.

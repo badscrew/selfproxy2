@@ -15,9 +15,12 @@ import com.selfproxy.vpn.domain.model.ConnectionState
 import com.selfproxy.vpn.domain.model.TrafficVerificationResult
 import com.selfproxy.vpn.domain.model.VerificationState
 import com.selfproxy.vpn.domain.repository.ProfileRepository
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 /**
@@ -74,6 +77,8 @@ class ConnectionViewModel(
     private val _verificationState = MutableStateFlow<VerificationState>(VerificationState.Idle)
     val verificationState: StateFlow<VerificationState> = _verificationState.asStateFlow()
     
+    private var statisticsPollingJob: Job? = null
+    
     init {
         // Load current profile if connected
         viewModelScope.launch {
@@ -82,14 +87,17 @@ class ConnectionViewModel(
                     is ConnectionState.Connected -> {
                         loadCurrentProfile(state.connection.profileId)
                         trafficMonitor.start()
+                        startStatisticsPolling()
                         _currentError.value = null
                     }
                     is ConnectionState.Disconnected -> {
                         _currentProfile.value = null
                         trafficMonitor.stop()
+                        stopStatisticsPolling()
                         _currentError.value = null
                     }
                     is ConnectionState.Error -> {
+                        stopStatisticsPolling()
                         // Extract ConnectionException if available
                         val error = state.error as? ConnectionException
                         _currentError.value = error ?: ConnectionException(
@@ -358,8 +366,58 @@ class ConnectionViewModel(
         _currentProfile.value = profile
     }
     
+    /**
+     * Starts polling statistics from the adapter and updating the TrafficMonitor.
+     */
+    private fun startStatisticsPolling() {
+        stopStatisticsPolling() // Stop any existing job
+        
+        statisticsPollingJob = viewModelScope.launch {
+            while (isActive) {
+                try {
+                    // Get statistics from the adapter via ConnectionManager
+                    val stats = connectionManager.getCurrentStatistics()
+                    if (stats != null) {
+                        // Update TrafficMonitor with the adapter's statistics
+                        // Calculate the delta since last update
+                        val currentStats = trafficMonitor.getCurrentStatistics()
+                        if (currentStats != null) {
+                            val bytesDelta = stats.bytesReceived - currentStats.bytesReceived
+                            val sentDelta = stats.bytesSent - currentStats.bytesSent
+                            if (bytesDelta > 0 || sentDelta > 0) {
+                                trafficMonitor.updateBytes(bytesDelta, sentDelta)
+                            }
+                        } else {
+                            // First update - set initial values
+                            trafficMonitor.updateBytes(stats.bytesReceived, stats.bytesSent)
+                        }
+                        
+                        // Update protocol-specific data
+                        stats.lastHandshakeTime?.let { trafficMonitor.setLastHandshakeTime(it) }
+                        stats.latency?.let { trafficMonitor.setLatency(it) }
+                    }
+                } catch (e: Exception) {
+                    // Log but don't crash
+                    android.util.Log.w("ConnectionViewModel", "Error polling statistics", e)
+                }
+                
+                // Poll every 1.5 seconds
+                delay(1500)
+            }
+        }
+    }
+    
+    /**
+     * Stops polling statistics.
+     */
+    private fun stopStatisticsPolling() {
+        statisticsPollingJob?.cancel()
+        statisticsPollingJob = null
+    }
+    
     override fun onCleared() {
         super.onCleared()
+        stopStatisticsPolling()
         trafficVerificationService.cleanup()
     }
 }

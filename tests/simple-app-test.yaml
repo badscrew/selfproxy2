@@ -1,0 +1,48 @@
+# SSH Tunnel Proxy - Simple App Test
+# Purpose: Simple test to see what's in the app
+# Usage: maestro test simple-app-test.yaml
+# Created: 2025-12-12
+# Note: Temporary test file for development - not part of production code
+
+appId: com.selfproxy.vpn.debug
+---
+
+# Launch the app
+- launchApp
+
+# Wait for app to load completely
+- waitForAnimationToEnd:
+    timeout: 5000
+
+# Try to find any text containing "Add" (case insensitive)
+- assertVisible:
+    text: "(?i).*add.*"
+    optional: true
+
+# Try to find any text containing "Server" (case insensitive)  
+- assertVisible:
+    text: "(?i).*server.*"
+    optional: true
+
+# Try to find any text containing "Profile" (case insensitive)
+- assertVisible:
+    text: "(?i).*profile.*"
+    optional: true
+
+# Try to find any text containing "Connect" (case insensitive)
+- assertVisible:
+    text: "(?i).*connect.*"
+    optional: true
+
+# Try to find a floating action button (common pattern)
+- assertVisible:
+    id: ".*fab.*"
+    optional: true
+
+# Try to find any button
+- assertVisible:
+    text: ".*"
+    optional: true
+
+# Take screenshot for manual inspection
+- takeScreenshot: "app-current-state.png"

@@ -1,0 +1,23 @@
+# SSH Tunnel Proxy - UI Exploration Test
+# Purpose: Explore the actual UI elements available in the app
+# Usage: maestro test explore-app-ui.yaml
+# Created: 2025-12-12
+# Note: Temporary test file for development - not part of production code
+
+appId: com.selfproxy.vpn.debug
+---
+
+# Just launch the app and take a screenshot
+- launchApp
+- takeScreenshot: "app-launched.png"
+
+# Try to find any clickable elements
+- assertVisible:
+    text: ".*"  # Any text
+    optional: true
+
+# Wait a bit for the app to fully load
+- waitForAnimationToEnd:
+    timeout: 3000
+
+- takeScreenshot: "app-loaded.png"

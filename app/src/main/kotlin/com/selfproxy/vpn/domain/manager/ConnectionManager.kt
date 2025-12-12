@@ -180,6 +180,15 @@ class ConnectionManager(
     }
     
     /**
+     * Gets current connection statistics from the active adapter.
+     * 
+     * @return Current statistics or null if not connected
+     */
+    fun getCurrentStatistics(): com.selfproxy.vpn.domain.adapter.ConnectionStatistics? {
+        return currentAdapter?.getStatistics()
+    }
+    
+    /**
      * Gets the recommended keep-alive interval based on battery state.
      * 
      * Requirements:

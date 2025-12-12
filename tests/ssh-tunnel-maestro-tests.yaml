@@ -1,0 +1,121 @@
+# SSH Tunnel Proxy - Maestro Test Suite
+# Purpose: Automated testing for SSH tunnel proxy application
+# Usage: maestro test ssh-tunnel-maestro-tests.yaml
+# Created: 2025-12-12
+# Note: Temporary test file for development - not part of production code
+
+appId: com.selfproxy.vpn.debug
+---
+
+# Test 1: Profile Creation Flow
+- launchApp
+- tapOn: "Add Server"
+- tapOn: "Server Name"
+- inputText: "Test Server"
+- tapOn: "Hostname" 
+- inputText: "test.example.com"
+- tapOn: "Port"
+- inputText: "22"
+- tapOn: "Username"
+- inputText: "testuser"
+- tapOn: "Key Type"
+- tapOn: "Ed25519"
+- tapOn: "Save Profile"
+- assertVisible: "Test Server"
+- assertVisible: "test.example.com"
+
+---
+
+# Test 2: VPN Permission Flow
+- tapOn: "Test Server"
+- tapOn: "Connect"
+# VPN permission dialog appears
+- tapOn: "OK"  # Grant VPN permission
+- assertVisible: "Connecting..."
+- waitForAnimationToEnd
+# Should show connected state or connection error
+- assertVisible: 
+    text: "Connected|Connection failed"
+
+---
+
+# Test 3: VPN Status Verification
+- runFlow:
+    when:
+      visible: "Connected"
+    steps:
+      # Check system status bar for VPN icon
+      - openNotifications
+      - assertVisible: "SSH Tunnel Active"
+      - assertVisible: "Connected to test.example.com"
+      - tapOn: "SSH Tunnel Active"
+      # Should return to app
+      - assertVisible: "Connected"
+
+---
+
+# Test 4: Disconnect Flow
+- tapOn: "Disconnect"
+- assertVisible: "Disconnected"
+- openNotifications
+- assertNotVisible: "SSH Tunnel Active"
+
+---
+
+# Test 5: Profile Management
+- tapOn: "Test Server"
+- tapOn: "Edit"
+- tapOn: "Server Name"
+- clearText
+- inputText: "Updated Server"
+- tapOn: "Save Profile"
+- assertVisible: "Updated Server"
+
+---
+
+# Test 6: App Backgrounding Test
+- tapOn: "Updated Server"
+- tapOn: "Connect"
+- tapOn: "OK"  # VPN permission
+- waitForAnimationToEnd
+- runFlow:
+    when:
+      visible: "Connected"
+    steps:
+      # Background the app
+      - pressKey: "Home"
+      - waitForAnimationToEnd
+      # Wait 5 seconds
+      - waitForAnimationToEnd:
+          timeout: 5000
+      # Return to app
+      - launchApp
+      # Should still be connected
+      - assertVisible: "Connected"
+
+---
+
+# Test 7: Network Change Simulation
+# Note: This requires manual network switching during test
+- tapOn: "Updated Server"  
+- tapOn: "Connect"
+- tapOn: "OK"
+- waitForAnimationToEnd
+- runFlow:
+    when:
+      visible: "Connected"
+    steps:
+      # Manual step: Switch from WiFi to mobile data
+      - assertVisible: "Connected"
+      - waitForAnimationToEnd:
+          timeout: 10000
+      # Should reconnect automatically
+      - assertVisible: "Connected"
+
+---
+
+# Test 8: Profile Deletion
+- tapOn: "Updated Server"
+- tapOn: "Delete"
+- tapOn: "Confirm"
+- assertNotVisible: "Updated Server"

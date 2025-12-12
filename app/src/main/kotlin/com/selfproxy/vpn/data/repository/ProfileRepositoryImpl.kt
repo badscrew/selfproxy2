@@ -16,7 +16,11 @@ class ProfileRepositoryImpl(
     private val credentialStore: com.selfproxy.vpn.domain.repository.CredentialStore
 ) : ProfileRepository {
     
-    override suspend fun createProfile(profile: ServerProfile): Result<Long> {
+    override suspend fun createProfile(
+        profile: ServerProfile, 
+        presharedKey: String?,
+        privateKey: String?  // For imports - if provided, use this instead of generating
+    ): Result<Long> {
         return try {
             // Validate profile before insertion
             validateProfile(profile).getOrThrow()
@@ -26,14 +30,23 @@ class ProfileRepositoryImpl(
             
             // Generate and store credentials for WireGuard profiles
             if (profile.protocol == Protocol.WIREGUARD) {
-                val keyPair = com.selfproxy.vpn.domain.util.WireGuardKeyGenerator.generateKeyPair()
-                val privateKey = keyPair.first
+                // Use provided private key (from import) or generate a new one
+                val keyToStore = privateKey ?: com.selfproxy.vpn.domain.util.WireGuardKeyGenerator.generateKeyPair().first
                 
                 // Store the private key in credential store
-                credentialStore.storeWireGuardPrivateKey(id, privateKey).getOrElse { error ->
+                credentialStore.storeWireGuardPrivateKey(id, keyToStore).getOrElse { error ->
                     // If credential storage fails, delete the profile and return error
                     profileDao.deleteById(id)
                     throw ProfileCreationException("Failed to store private key: ${error.message}", error)
+                }
+                
+                // Store preshared key if provided
+                if (presharedKey != null && presharedKey.isNotBlank()) {
+                    credentialStore.storeWireGuardPresharedKey(id, presharedKey).getOrElse { error ->
+                        // If preshared key storage fails, delete the profile and return error
+                        profileDao.deleteById(id)
+                        throw ProfileCreationException("Failed to store preshared key: ${error.message}", error)
+                    }
                 }
             }
             
@@ -77,7 +90,7 @@ class ProfileRepositoryImpl(
         return profileDao.observeByProtocol(protocol)
     }
     
-    override suspend fun updateProfile(profile: ServerProfile): Result<Unit> {
+    override suspend fun updateProfile(profile: ServerProfile, presharedKey: String?): Result<Unit> {
         return try {
             // Validate profile before update
             validateProfile(profile).getOrThrow()
@@ -90,6 +103,13 @@ class ProfileRepositoryImpl(
             val existingProfile = profileDao.getById(profile.id)
             if (existingProfile == null) {
                 return Result.failure(ProfileNotFoundException("Profile with ID ${profile.id} not found"))
+            }
+            
+            // Update preshared key if provided for WireGuard profiles
+            if (profile.protocol == Protocol.WIREGUARD && presharedKey != null && presharedKey.isNotBlank()) {
+                credentialStore.storeWireGuardPresharedKey(profile.id, presharedKey).getOrElse { error ->
+                    return Result.failure(ProfileUpdateException("Failed to update preshared key: ${error.message}", error))
+                }
             }
             
             // Update profile
@@ -246,7 +266,20 @@ class ProfileRepositoryImpl(
                     }
                     
                     // Create the profile in the database
-                    createProfile(profile).fold(
+                    // Extract credentials for WireGuard profiles
+                    val presharedKey = if (importedConfig.protocol == Protocol.WIREGUARD) {
+                        importedConfig.wireGuardConfig?.presharedKey
+                    } else {
+                        null
+                    }
+                    
+                    val privateKey = if (importedConfig.protocol == Protocol.WIREGUARD) {
+                        importedConfig.wireGuardConfig?.privateKey
+                    } else {
+                        null
+                    }
+                    
+                    createProfile(profile, presharedKey, privateKey).fold(
                         onSuccess = { id ->
                             Result.success(profile.copy(id = id))
                         },

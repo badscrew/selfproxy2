@@ -6,10 +6,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.VpnKey
+import androidx.compose.material.icons.outlined.QrCodeScanner
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.selfproxy.vpn.data.model.ServerProfile
 import com.selfproxy.vpn.domain.model.Protocol
+import com.selfproxy.vpn.ui.components.QrCodeScanner
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -37,15 +40,44 @@ fun ProfileListScreen(
     onNavigateToConnection: () -> Unit,
     onConnectProfile: (ServerProfile) -> Unit = {},
     onCopyProfile: (ServerProfile) -> Unit = {},
+    onImportQrCode: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var profileToDelete by remember { mutableStateOf<ServerProfile?>(null) }
+    var showQrScanner by remember { mutableStateOf(false) }
+    
+    // QR Code Scanner Dialog
+    if (showQrScanner) {
+        QrCodeScanner(
+            onQrCodeScanned = { qrCode ->
+                showQrScanner = false
+                onImportQrCode(qrCode)
+            },
+            onDismiss = { showQrScanner = false }
+        )
+    }
     
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("VPN Profiles") },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateToConnection) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Back to Connection",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                },
                 actions = {
+                    IconButton(onClick = { showQrScanner = true }) {
+                        Icon(
+                            imageVector = Icons.Outlined.QrCodeScanner,
+                            contentDescription = "Scan QR Code",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
                     TextButton(onClick = onNavigateToConnection) {
                         Text("Connection")
                     }
