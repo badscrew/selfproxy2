@@ -62,11 +62,10 @@ class VlessAdapter(
         private const val TAG = "VlessAdapter"
     }
     
-    // Xray-core integration
-    private var xrayCore: XrayCore? = null
+    // Connection state
     private var currentProfile: ServerProfile? = null
     private var connectionStartTime: Instant? = null
-    private var socksPort: Int = 0
+    private var socksPort: Int = 0  // Not used in TUN mode, kept for compatibility
     
     // Statistics tracking
     private var lastBytesReceived: Long = 0
@@ -143,66 +142,24 @@ class VlessAdapter(
                 Log.d(TAG, "TLS validation passed")
             }
             
-            // Initialize Xray-core
-            Log.d(TAG, "Initializing Xray-core...")
-            val xray = XrayCore(context)
-            
-            // Build Xray configuration
-            Log.d(TAG, "Building Xray configuration...")
-            val xrayConfig = xray.buildConfig(profile, uuid)
-            Log.d(TAG, "Xray config built successfully")
-            
-            // Create callback handler
-            val callbackHandler = object : CoreCallbackHandler {
-                override fun onEmitStatus(code: Long, status: String): Long {
-                    Log.d(TAG, "Xray status [$code]: $status")
-                    return 0
-                }
-                
-                override fun startup(): Long {
-                    Log.d(TAG, "Xray startup called")
-                    return 0
-                }
-                
-                override fun shutdown(): Long {
-                    Log.d(TAG, "Xray shutdown called")
-                    return 0
-                }
-            }
-            
-            // Start Xray-core
-            Log.d(TAG, "Starting Xray-core...")
-            val startResult = xray.start(xrayConfig, callbackHandler)
-            
-            if (startResult.isFailure) {
-                val errorMsg = startResult.exceptionOrNull()?.message ?: "Failed to start Xray-core"
-                Log.e(TAG, "Xray-core start failed: $errorMsg", startResult.exceptionOrNull())
-                val error = VlessException(errorMsg, startResult.exceptionOrNull())
-                _connectionState.value = ConnectionState.Error(error)
-                return@withContext Result.failure(error)
-            }
-            
-            socksPort = startResult.getOrThrow()
-            Log.d(TAG, "Xray-core started successfully, SOCKS5 port: $socksPort")
-            xrayCore = xray
+            // Start VPN service - it will create TUN interface and start Xray-core with TUN mode
+            // This is the correct architecture: VPN service owns both TUN and Xray
+            Log.d(TAG, "Starting VPN service with TUN mode...")
+            Log.d(TAG, "VPN service will create TUN interface and start Xray-core")
             
             currentProfile = profile
             connectionStartTime = Instant.now()
             
-            // Start VPN service to create TUN interface and route traffic
-            Log.d(TAG, "Starting VPN service to route traffic through SOCKS5 proxy...")
-            val vpnStartResult = startVpnService(profile, socksPort)
+            val vpnStartResult = startVpnService(profile, uuid)
             if (vpnStartResult.isFailure) {
                 val errorMsg = "Failed to start VPN service: ${vpnStartResult.exceptionOrNull()?.message}"
                 Log.e(TAG, errorMsg, vpnStartResult.exceptionOrNull())
-                // Stop Xray-core since VPN service failed
-                xray.stop()
-                xrayCore = null
                 val error = VlessException(errorMsg, vpnStartResult.exceptionOrNull())
                 _connectionState.value = ConnectionState.Error(error)
                 return@withContext Result.failure(error)
             }
             Log.d(TAG, "VPN service started successfully")
+            Log.d(TAG, "VPN service is now creating TUN and starting Xray-core with TUN mode")
             
             // Only create connection object and mark as connected AFTER establishment succeeds
             val connection = Connection(
@@ -236,14 +193,11 @@ class VlessAdapter(
         try {
             Log.d(TAG, "Disconnecting VLESS connection...")
             
-            // Stop VPN service first
-            Log.d(TAG, "Stopping VPN service...")
+            // Stop VPN service - it will stop Xray-core
+            Log.d(TAG, "Stopping VPN service (which will stop Xray-core)...")
             stopVpnService()
             
-            // Then stop Xray-core
-            Log.d(TAG, "Stopping Xray-core...")
-            xrayCore?.stop()
-            xrayCore = null
+            // Clear state
             currentProfile = null
             connectionStartTime = null
             currentLatency = null
@@ -256,7 +210,6 @@ class VlessAdapter(
             Log.e(TAG, "Error during disconnect", e)
             // Log error but don't throw - disconnection should always succeed
             stopVpnService()  // Try to stop VPN service anyway
-            xrayCore = null
             currentProfile = null
             connectionStartTime = null
             currentLatency = null
@@ -713,8 +666,7 @@ class VlessAdapter(
     /**
      * Performs a VLESS connection test.
      * 
-     * Note: Full traffic routing through the tunnel is not yet implemented.
-     * This test verifies that Xray-core is running and the VPN service is active.
+     * Tests the connection by making an HTTP request through the VPN tunnel.
      */
     private suspend fun performVlessConnectionTest(
         profile: ServerProfile,
@@ -723,15 +675,30 @@ class VlessAdapter(
         return try {
             Log.d(TAG, "Performing connection test...")
             
-            // For now, just verify that Xray-core is running
-            // TODO: Implement full packet routing in TunnelVpnService to enable actual traffic test
+            // Get test URL from settings
+            val testUrl = settingsRepository.getConnectionTestUrl().first()
+            Log.d(TAG, "Testing connection to: $testUrl")
             
-            if (xrayCore?.isRunning() == true) {
-                Log.d(TAG, "Xray-core is running - connection test passed")
+            // Make HTTP request through the tunnel
+            val client = okhttp3.OkHttpClient.Builder()
+                .connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+                .readTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+                .build()
+            
+            val request = okhttp3.Request.Builder()
+                .url(testUrl)
+                .build()
+            
+            val response = client.newCall(request).execute()
+            val success = response.isSuccessful
+            
+            if (success) {
+                Log.d(TAG, "Connection test passed - HTTP ${response.code}")
                 Pair(true, null)
             } else {
-                Log.e(TAG, "Xray-core is not running")
-                Pair(false, "Xray-core is not running")
+                val errorMsg = "HTTP ${response.code}: ${response.message}"
+                Log.e(TAG, "Connection test failed: $errorMsg")
+                Pair(false, errorMsg)
             }
             
         } catch (e: Exception) {
@@ -762,15 +729,18 @@ class VlessAdapter(
     }
     
     /**
-     * Starts the VPN service to create TUN interface and route traffic.
+     * Starts the VPN service to create TUN interface and start Xray with TUN mode.
+     * 
+     * Note: Changed to pass profile ID and UUID instead of SOCKS port.
+     * The VPN service will now start Xray-core with TUN mode.
      */
-    private suspend fun startVpnService(profile: ServerProfile, socksPort: Int): Result<Unit> = withContext(Dispatchers.IO) {
+    private suspend fun startVpnService(profile: ServerProfile, uuid: String): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             Log.d(TAG, "Creating VPN service intent...")
             val intent = Intent(context, TunnelVpnService::class.java).apply {
                 action = TunnelVpnService.ACTION_START_VPN
-                putExtra("SOCKS_PORT", socksPort)
                 putExtra("PROFILE_ID", profile.id)
+                putExtra("VLESS_UUID", uuid)
                 putExtra("PROFILE_NAME", profile.name)
                 putExtra("SERVER_ADDRESS", profile.hostname)
             }

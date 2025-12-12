@@ -88,7 +88,11 @@ class TunnelVpnService : VpnService() {
     private var ipv6Enabled: Boolean = false
     private var customDnsServers: List<String> = listOf(PRIMARY_DNS, SECONDARY_DNS)
     private var excludedApps: Set<String> = emptySet()
-    private var socksPort: Int = 0  // SOCKS5 proxy port
+    
+    // Xray-core integration for TUN mode
+    private var xrayCore: com.selfproxy.vpn.platform.vless.XrayCore? = null
+    private var profileId: Long = 0
+    private var vlessUuid: String = ""
 
     override fun onCreate() {
         super.onCreate()
@@ -101,16 +105,17 @@ class TunnelVpnService : VpnService() {
         
         when (intent?.action) {
             ACTION_START_VPN -> {
-                // Extract SOCKS5 port and profile info from intent
-                socksPort = intent.getIntExtra("SOCKS_PORT", 0)
+                // Extract profile info and UUID from intent
+                profileId = intent.getLongExtra("PROFILE_ID", 0)
+                vlessUuid = intent.getStringExtra("VLESS_UUID") ?: ""
                 val profileName = intent.getStringExtra("PROFILE_NAME") ?: "VPN Server"
                 val serverAddress = intent.getStringExtra("SERVER_ADDRESS") ?: "Unknown"
                 
-                SanitizedLogger.d(TAG, "Starting VPN with SOCKS5 port: $socksPort")
+                SanitizedLogger.d(TAG, "Starting VPN with TUN mode")
                 SanitizedLogger.d(TAG, "Profile: $profileName, Server: $serverAddress")
                 
-                if (socksPort == 0) {
-                    SanitizedLogger.e(TAG, "Invalid SOCKS5 port: $socksPort")
+                if (profileId == 0L || vlessUuid.isEmpty()) {
+                    SanitizedLogger.e(TAG, "Invalid profile ID or UUID")
                     stopSelf()
                     return START_NOT_STICKY
                 }
@@ -123,17 +128,8 @@ class TunnelVpnService : VpnService() {
                 )
                 startForeground(NOTIFICATION_ID, notification)
                 
-                // Start VPN tunnel
-                startVpnTunnel(
-                    profile = null,  // Profile not needed for basic routing
-                    adapter = null,  // Adapter not needed - using SOCKS5 directly
-                    ipv6Enabled = false,  // TODO: Make configurable
-                    dnsServers = listOf(PRIMARY_DNS, SECONDARY_DNS),
-                    excludedApps = emptySet()  // TODO: Load from settings
-                )
-                
-                // Update notification with connected status
-                updateNotificationWithStatus("Connected", profileName, "via $serverAddress")
+                // Start VPN tunnel with Xray TUN mode
+                startVpnTunnelWithXray(profileId, vlessUuid, profileName, serverAddress)
             }
             ACTION_STOP_VPN -> {
                 updateNotificationWithStatus("Disconnecting")
@@ -226,11 +222,122 @@ class TunnelVpnService : VpnService() {
     }
 
     /**
+     * Starts VPN tunnel with Xray TUN mode.
+     * 
+     * This is the new approach where Xray-core handles packet routing directly.
+     */
+    private fun startVpnTunnelWithXray(
+        profileId: Long,
+        uuid: String,
+        profileName: String,
+        serverAddress: String
+    ) {
+        serviceScope.launch {
+            try {
+                SanitizedLogger.d(TAG, "Starting VPN tunnel with Xray TUN mode")
+                
+                // 1. Create TUN interface first
+                tunInterface = createTunInterface(
+                    profile = null,  // Not needed for TUN creation
+                    ipv6Enabled = false,
+                    dnsServers = listOf(PRIMARY_DNS, SECONDARY_DNS),
+                    excludedApps = emptySet()
+                )
+                
+                if (tunInterface == null) {
+                    SanitizedLogger.e(TAG, "Failed to create TUN interface")
+                    updateNotificationWithStatus("Error", profileName, "Failed to create TUN interface")
+                    stopSelf()
+                    return@launch
+                }
+                
+                // 2. Get TUN file descriptor
+                val tunFd = tunInterface!!.fd
+                SanitizedLogger.d(TAG, "TUN interface created with fd: $tunFd")
+                
+                // 3. Get profile from repository
+                // Since we can't easily inject ProfileRepository into a Service,
+                // we retrieve it from Koin directly
+                val profileRepository = org.koin.core.component.KoinComponent().getKoin().get<com.selfproxy.vpn.domain.repository.ProfileRepository>()
+                val profile = profileRepository.getProfile(profileId)
+                
+                if (profile == null) {
+                    SanitizedLogger.e(TAG, "Profile not found: $profileId")
+                    updateNotificationWithStatus("Error", profileName, "Profile not found")
+                    stopSelf()
+                    return@launch
+                }
+                
+                SanitizedLogger.d(TAG, "Profile retrieved: ${profile.name}")
+                
+                // 4. Initialize Xray-core
+                xrayCore = com.selfproxy.vpn.platform.vless.XrayCore(this@TunnelVpnService)
+                
+                // 5. Build Xray config with TUN fd
+                val xrayConfig = xrayCore!!.buildConfig(profile, uuid, tunFd)
+                SanitizedLogger.d(TAG, "Xray config built with TUN mode")
+                
+                // 6. Create callback handler
+                val callbackHandler = object : libv2ray.CoreCallbackHandler {
+                    override fun onEmitStatus(code: Long, status: String): Long {
+                        SanitizedLogger.d(TAG, "Xray status [$code]: $status")
+                        return 0
+                    }
+                    
+                    override fun startup(): Long {
+                        SanitizedLogger.d(TAG, "Xray startup called")
+                        return 0
+                    }
+                    
+                    override fun shutdown(): Long {
+                        SanitizedLogger.d(TAG, "Xray shutdown called")
+                        return 0
+                    }
+                }
+                
+                // 7. Start Xray-core with TUN fd
+                SanitizedLogger.d(TAG, "Starting Xray-core with TUN mode...")
+                val startResult = xrayCore!!.start(xrayConfig, callbackHandler)
+                
+                if (startResult.isFailure) {
+                    val errorMsg = startResult.exceptionOrNull()?.message ?: "Failed to start Xray-core"
+                    SanitizedLogger.e(TAG, "Xray-core start failed: $errorMsg", startResult.exceptionOrNull())
+                    updateNotificationWithStatus("Error", profileName, errorMsg)
+                    stopVpnTunnel()
+                    stopSelf()
+                    return@launch
+                }
+                
+                SanitizedLogger.i(TAG, "VPN tunnel with Xray TUN mode started successfully")
+                SanitizedLogger.i(TAG, "Xray-core is now handling all packet routing through TUN interface")
+                updateNotificationWithStatus("Connected", profileName, "via $serverAddress")
+                
+            } catch (e: Exception) {
+                SanitizedLogger.e(TAG, "Error starting VPN tunnel with Xray", e)
+                updateNotificationWithStatus("Error", profileName, e.message ?: "Unknown error")
+                stopVpnTunnel()
+                stopSelf()
+            }
+        }
+    }
+    
+    /**
      * Stops the VPN tunnel and cleans up resources.
      */
     fun stopVpnTunnel() {
         try {
             SanitizedLogger.d(TAG, "Stopping VPN tunnel")
+            
+            // Stop Xray-core if running
+            serviceScope.launch {
+                try {
+                    xrayCore?.stop()
+                    xrayCore = null
+                    SanitizedLogger.d(TAG, "Xray-core stopped")
+                } catch (e: Exception) {
+                    SanitizedLogger.e(TAG, "Error stopping Xray-core", e)
+                }
+            }
             
             // Stop packet routing
             packetRoutingJob?.cancel()
