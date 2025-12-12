@@ -316,9 +316,22 @@ fun ProfileManagementApp(
             )
         }
         is Screen.ProfileForm -> {
+            // Load stored UUID for editing VLESS profiles
+            var storedUuid by remember { mutableStateOf<String?>(null) }
+            
+            LaunchedEffect(profileToEdit) {
+                val profile = profileToEdit
+                storedUuid = if (profile != null && profile.protocol == Protocol.VLESS) {
+                    profileViewModel.getStoredUuid(profile.id)
+                } else {
+                    null
+                }
+            }
+            
             ProfileFormScreen(
                 profile = profileToEdit,
                 initialProtocol = selectedProtocolForNewProfile,
+                storedUuid = storedUuid,
                 onSave = { profile, presharedKey ->
                     if (profile.id == 0L) {
                         profileViewModel.createProfile(profile, presharedKey)

@@ -28,6 +28,7 @@ import com.selfproxy.vpn.ui.components.ProtocolRecommendationsDialog
 fun ProfileFormScreen(
     profile: ServerProfile? = null,
     initialProtocol: Protocol? = null,
+    storedUuid: String? = null, // UUID loaded from CredentialStore for editing
     onSave: (ServerProfile, String?) -> Unit, // Added presharedKey parameter
     onCancel: () -> Unit,
     modifier: Modifier = Modifier
@@ -40,7 +41,7 @@ fun ProfileFormScreen(
     var port by remember { mutableStateOf(profile?.port?.toString() ?: "443") }
     
     // VLESS fields
-    var vlessUuid by remember { mutableStateOf("") } // Will be loaded from credential store for editing
+    var vlessUuid by remember { mutableStateOf(storedUuid ?: "") } // UUID from CredentialStore or empty for new profiles
     var vlessTransport by remember { mutableStateOf(profile?.vlessConfigJson?.let { profile.getVlessConfig().transport } ?: TransportProtocol.TCP) }
     var vlessFlowControl by remember { mutableStateOf(profile?.vlessConfigJson?.let { profile.getVlessConfig().flowControl } ?: FlowControl.NONE) }
     

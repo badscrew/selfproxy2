@@ -14,7 +14,8 @@ import kotlinx.coroutines.launch
  * Handles profile CRUD operations and exposes profile state to the UI.
  */
 class ProfileViewModel(
-    private val profileRepository: ProfileRepository
+    private val profileRepository: ProfileRepository,
+    private val credentialStore: com.selfproxy.vpn.domain.repository.CredentialStore
 ) : ViewModel() {
     
     /**
@@ -117,6 +118,14 @@ class ProfileViewModel(
      */
     suspend fun getProfile(profileId: Long): ServerProfile? {
         return profileRepository.getProfile(profileId)
+    }
+    
+    /**
+     * Gets the stored UUID for a VLESS profile.
+     * Returns null if not found or if there's an error.
+     */
+    suspend fun getStoredUuid(profileId: Long): String? {
+        return credentialStore.getVlessUuid(profileId).getOrNull()
     }
     
     /**

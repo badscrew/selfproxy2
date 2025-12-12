@@ -173,7 +173,7 @@ val appModule = module {
      * Profile management ViewModel.
      * Requirements: 1.1, 1.2, 1.3, 1.5, 1.7, 1.8, 1.9
      */
-    viewModel { ProfileViewModel(get()) }
+    viewModel { ProfileViewModel(get(), get()) }
     
     /**
      * Connection screen ViewModel.
