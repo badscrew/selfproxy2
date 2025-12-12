@@ -35,17 +35,9 @@ fun ProfileFormScreen(
     val isEditing = profile != null
     
     var name by remember { mutableStateOf(profile?.name ?: "") }
-    var selectedProtocol by remember { mutableStateOf(profile?.protocol ?: initialProtocol ?: Protocol.WIREGUARD) }
+    var selectedProtocol by remember { mutableStateOf(profile?.protocol ?: initialProtocol ?: Protocol.VLESS) }
     var hostname by remember { mutableStateOf(profile?.hostname ?: "") }
-    var port by remember { mutableStateOf(profile?.port?.toString() ?: "51820") }
-    
-    // WireGuard fields
-    var wgPublicKey by remember { mutableStateOf(profile?.wireGuardConfigJson?.let { profile.getWireGuardConfig().publicKey } ?: "") }
-    var wgPresharedKey by remember { mutableStateOf("") } // Will be loaded from credential store
-    var wgEndpoint by remember { mutableStateOf(profile?.wireGuardConfigJson?.let { profile.getWireGuardConfig().endpoint } ?: "") }
-    var wgAllowedIPs by remember { mutableStateOf(profile?.wireGuardConfigJson?.let { profile.getWireGuardConfig().allowedIPs.joinToString(", ") } ?: "0.0.0.0/0, ::/0") }
-    var wgPersistentKeepalive by remember { mutableStateOf(profile?.wireGuardConfigJson?.let { profile.getWireGuardConfig().persistentKeepalive?.toString() } ?: "") }
-    var wgMtu by remember { mutableStateOf(profile?.wireGuardConfigJson?.let { profile.getWireGuardConfig().mtu.toString() } ?: "1420") }
+    var port by remember { mutableStateOf(profile?.port?.toString() ?: "443") }
     
     // VLESS fields
     var vlessUuid by remember { mutableStateOf("") } // Will be loaded from credential store for editing
@@ -170,21 +162,18 @@ fun ProfileFormScreen(
             // Protocol-specific configuration
             when (selectedProtocol) {
                 Protocol.WIREGUARD -> {
-                    WireGuardConfigForm(
-                        publicKey = wgPublicKey,
-                        onPublicKeyChange = { wgPublicKey = it },
-                        presharedKey = wgPresharedKey,
-                        onPresharedKeyChange = { wgPresharedKey = it },
-                        endpoint = wgEndpoint,
-                        onEndpointChange = { wgEndpoint = it },
-                        allowedIPs = wgAllowedIPs,
-                        onAllowedIPsChange = { wgAllowedIPs = it },
-                        persistentKeepalive = wgPersistentKeepalive,
-                        onPersistentKeepaliveChange = { wgPersistentKeepalive = it },
-                        mtu = wgMtu,
-                        onMtuChange = { wgMtu = it },
-                        isEditing = isEditing
-                    )
+                    // WireGuard not fully implemented - show message
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer
+                        )
+                    ) {
+                        Text(
+                            text = "WireGuard protocol is not supported in this version. Please use VLESS.",
+                            modifier = Modifier.padding(16.dp),
+                            color = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                    }
                 }
                 Protocol.VLESS -> {
                     VlessConfigForm(
@@ -229,22 +218,9 @@ fun ProfileFormScreen(
                         
                         val newProfile = when (selectedProtocol) {
                             Protocol.WIREGUARD -> {
-                                val config = WireGuardConfig(
-                                    publicKey = wgPublicKey,
-                                    endpoint = wgEndpoint,
-                                    allowedIPs = wgAllowedIPs.split(",").map { it.trim() },
-                                    persistentKeepalive = wgPersistentKeepalive.toIntOrNull(),
-                                    mtu = wgMtu.toIntOrNull() ?: 1420
-                                )
-                                ServerProfile.createWireGuardProfile(
-                                    name = name,
-                                    hostname = hostname,
-                                    port = portInt,
-                                    config = config,
-                                    id = profile?.id ?: 0,
-                                    createdAt = profile?.createdAt ?: System.currentTimeMillis(),
-                                    lastUsed = profile?.lastUsed
-                                )
+                                // WireGuard not fully implemented
+                                errorMessage = "WireGuard protocol is not supported in this version"
+                                return@Button
                             }
                             Protocol.VLESS -> {
                                 // Validate UUID
@@ -307,11 +283,8 @@ fun ProfileFormScreen(
                             }
                         }
                         
-                        // Pass credential (preshared key for WireGuard, UUID for VLESS)
-                        val credentialToSave = when (selectedProtocol) {
-                            Protocol.WIREGUARD -> if (wgPresharedKey.isNotBlank()) wgPresharedKey else null
-                            Protocol.VLESS -> if (vlessUuid.isNotBlank()) vlessUuid else null
-                        }
+                        // Pass credential (UUID for VLESS)
+                        val credentialToSave = if (vlessUuid.isNotBlank()) vlessUuid else null
                         
                         onSave(newProfile, credentialToSave)
                     } catch (e: Exception) {
@@ -360,30 +333,9 @@ private fun ProtocolSelector(
         
         Spacer(modifier = Modifier.height(8.dp))
         
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            ProtocolOption(
-                protocol = Protocol.WIREGUARD,
-                isSelected = selectedProtocol == Protocol.WIREGUARD,
-                onClick = { onProtocolSelected(Protocol.WIREGUARD) },
-                modifier = Modifier.weight(1f)
-            )
-            ProtocolOption(
-                protocol = Protocol.VLESS,
-                isSelected = selectedProtocol == Protocol.VLESS,
-                onClick = { onProtocolSelected(Protocol.VLESS) },
-                modifier = Modifier.weight(1f)
-            )
-        }
-        
         // Protocol description
         Text(
-            text = when (selectedProtocol) {
-                Protocol.WIREGUARD -> "⭐ Recommended: Fast, efficient, and battery-friendly. Best for most users."
-                Protocol.VLESS -> "Advanced: For users requiring obfuscation in restrictive networks."
-            },
+            text = "VLESS protocol with Reality support for secure connections in restrictive networks.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 8.dp)
@@ -415,10 +367,7 @@ private fun ProtocolOption(
                 .padding(16.dp)
         ) {
             Text(
-                text = when (protocol) {
-                    Protocol.WIREGUARD -> "WireGuard"
-                    Protocol.VLESS -> "VLESS"
-                },
+                text = "VLESS",
                 style = MaterialTheme.typography.titleMedium,
                 color = if (isSelected) {
                     MaterialTheme.colorScheme.onPrimaryContainer
@@ -427,120 +376,6 @@ private fun ProtocolOption(
                 }
             )
         }
-    }
-}
-
-@Composable
-private fun WireGuardConfigForm(
-    publicKey: String,
-    onPublicKeyChange: (String) -> Unit,
-    presharedKey: String,
-    onPresharedKeyChange: (String) -> Unit,
-    endpoint: String,
-    onEndpointChange: (String) -> Unit,
-    allowedIPs: String,
-    onAllowedIPsChange: (String) -> Unit,
-    persistentKeepalive: String,
-    onPersistentKeepaliveChange: (String) -> Unit,
-    mtu: String,
-    onMtuChange: (String) -> Unit,
-    isEditing: Boolean = false,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Text(
-            text = "WireGuard Configuration",
-            style = MaterialTheme.typography.titleMedium
-        )
-        
-        // Client Key Information
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-            )
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    text = "Client Keys",
-                    style = MaterialTheme.typography.titleSmall
-                )
-                if (isEditing) {
-                    Text(
-                        text = "Your client keys were generated when this profile was created. The private key is stored securely on your device.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                } else {
-                    Text(
-                        text = "A new key pair will be generated automatically when you save this profile. You'll need to provide your public key to the server administrator.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
-        
-        OutlinedTextField(
-            value = publicKey,
-            onValueChange = onPublicKeyChange,
-            label = { Text("Server Public Key") },
-            supportingText = { Text("Enter the public key provided by your WireGuard server administrator") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
-        
-        OutlinedTextField(
-            value = presharedKey,
-            onValueChange = onPresharedKeyChange,
-            label = { Text("Preshared Key (Optional)") },
-            supportingText = { Text("Enter the preshared key if your server requires one for additional security") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            placeholder = { Text("Leave empty if not required") }
-        )
-        
-        OutlinedTextField(
-            value = endpoint,
-            onValueChange = onEndpointChange,
-            label = { Text("Endpoint (hostname:port)") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            placeholder = { Text("vpn.example.com:51820") }
-        )
-        
-        OutlinedTextField(
-            value = allowedIPs,
-            onValueChange = onAllowedIPsChange,
-            label = { Text("Allowed IPs") },
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("0.0.0.0/0, ::/0") }
-        )
-        
-        OutlinedTextField(
-            value = persistentKeepalive,
-            onValueChange = onPersistentKeepaliveChange,
-            label = { Text("Persistent Keepalive (seconds, optional)") },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            singleLine = true,
-            placeholder = { Text("25") }
-        )
-        
-        OutlinedTextField(
-            value = mtu,
-            onValueChange = onMtuChange,
-            label = { Text("MTU") },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            singleLine = true
-        )
     }
 }
 

@@ -28,27 +28,12 @@ class ProfileRepositoryImpl(
             // Insert profile
             val id = profileDao.insert(profile)
             
-            // Generate and store credentials based on protocol
+            // Store credentials based on protocol
             when (profile.protocol) {
                 Protocol.WIREGUARD -> {
-                    // Use provided private key (from import) or generate a new one
-                    val keyToStore = privateKey ?: com.selfproxy.vpn.domain.util.WireGuardKeyGenerator.generateKeyPair().first
-                    
-                    // Store the private key in credential store
-                    credentialStore.storeWireGuardPrivateKey(id, keyToStore).getOrElse { error ->
-                        // If credential storage fails, delete the profile and return error
-                        profileDao.deleteById(id)
-                        throw ProfileCreationException("Failed to store private key: ${error.message}", error)
-                    }
-                    
-                    // Store preshared key if provided
-                    if (presharedKey != null && presharedKey.isNotBlank()) {
-                        credentialStore.storeWireGuardPresharedKey(id, presharedKey).getOrElse { error ->
-                            // If preshared key storage fails, delete the profile and return error
-                            profileDao.deleteById(id)
-                            throw ProfileCreationException("Failed to store preshared key: ${error.message}", error)
-                        }
-                    }
+                    // WireGuard not fully implemented
+                    profileDao.deleteById(id)
+                    throw ProfileCreationException("WireGuard protocol is not supported in this version")
                 }
                 Protocol.VLESS -> {
                     // For VLESS, the presharedKey parameter is actually the UUID
@@ -125,12 +110,8 @@ class ProfileRepositoryImpl(
             // Update credentials based on protocol
             when (profile.protocol) {
                 Protocol.WIREGUARD -> {
-                    // Update preshared key if provided
-                    if (presharedKey != null && presharedKey.isNotBlank()) {
-                        credentialStore.storeWireGuardPresharedKey(profile.id, presharedKey).getOrElse { error ->
-                            return Result.failure(ProfileUpdateException("Failed to update preshared key: ${error.message}", error))
-                        }
-                    }
+                    // WireGuard not fully implemented
+                    return Result.failure(ProfileUpdateException("WireGuard protocol is not supported in this version"))
                 }
                 Protocol.VLESS -> {
                     // Update UUID if provided (presharedKey parameter is used for UUID)
@@ -214,9 +195,6 @@ class ProfileRepositoryImpl(
                     require(profile.wireGuardConfigJson != null) {
                         "WireGuard configuration required for WireGuard protocol"
                     }
-                    require(profile.vlessConfigJson == null) {
-                        "VLESS configuration should not be present for WireGuard protocol"
-                    }
                     
                     // Validate WireGuard config can be parsed
                     try {
@@ -228,9 +206,6 @@ class ProfileRepositoryImpl(
                 Protocol.VLESS -> {
                     require(profile.vlessConfigJson != null) {
                         "VLESS configuration required for VLESS protocol"
-                    }
-                    require(profile.wireGuardConfigJson == null) {
-                        "WireGuard configuration should not be present for VLESS protocol"
                     }
                     
                     // Validate VLESS config can be parsed
@@ -258,59 +233,25 @@ class ProfileRepositoryImpl(
             importResult.fold(
                 onSuccess = { importedConfig ->
                     // Create a profile from the imported configuration
-                    val profile = when (importedConfig.protocol) {
-                        Protocol.WIREGUARD -> {
-                            val wgConfig = importedConfig.wireGuardConfig!!
-                            ServerProfile(
-                                id = 0,
-                                name = wgConfig.name,
-                                protocol = Protocol.WIREGUARD,
-                                hostname = wgConfig.hostname,
-                                port = wgConfig.port,
-                                wireGuardConfigJson = kotlinx.serialization.json.Json.encodeToString(
-                                    com.selfproxy.vpn.data.model.WireGuardConfig.serializer(),
-                                    wgConfig.config
-                                ),
-                                vlessConfigJson = null,
-                                createdAt = System.currentTimeMillis(),
-                                lastUsed = null
-                            )
-                        }
-                        Protocol.VLESS -> {
-                            val vlessConfig = importedConfig.vlessConfig!!
-                            ServerProfile(
-                                id = 0,
-                                name = vlessConfig.name,
-                                protocol = Protocol.VLESS,
-                                hostname = vlessConfig.hostname,
-                                port = vlessConfig.port,
-                                wireGuardConfigJson = null,
-                                vlessConfigJson = kotlinx.serialization.json.Json.encodeToString(
-                                    com.selfproxy.vpn.data.model.VlessConfig.serializer(),
-                                    vlessConfig.config
-                                ),
-                                createdAt = System.currentTimeMillis(),
-                                lastUsed = null
-                            )
-                        }
-                    }
+                    val vlessConfig = importedConfig.vlessConfig
+                    val profile = ServerProfile(
+                        id = 0,
+                        name = vlessConfig.name,
+                        protocol = Protocol.VLESS,
+                        hostname = vlessConfig.hostname,
+                        port = vlessConfig.port,
+                        vlessConfigJson = kotlinx.serialization.json.Json.encodeToString(
+                            com.selfproxy.vpn.data.model.VlessConfig.serializer(),
+                            vlessConfig.config
+                        ),
+                        createdAt = System.currentTimeMillis(),
+                        lastUsed = null
+                    )
                     
                     // Create the profile in the database
-                    // Extract credentials based on protocol
-                    val credential: String?
-                    val privateKey: String?
-                    
-                    when (importedConfig.protocol) {
-                        Protocol.WIREGUARD -> {
-                            credential = importedConfig.wireGuardConfig?.presharedKey
-                            privateKey = importedConfig.wireGuardConfig?.privateKey
-                        }
-                        Protocol.VLESS -> {
-                            // For VLESS, the credential is the UUID
-                            credential = importedConfig.vlessConfig?.uuid
-                            privateKey = null
-                        }
-                    }
+                    // For VLESS, the credential is the UUID
+                    val credential = vlessConfig.uuid
+                    val privateKey: String? = null
                     
                     createProfile(profile, credential, privateKey).fold(
                         onSuccess = { id ->

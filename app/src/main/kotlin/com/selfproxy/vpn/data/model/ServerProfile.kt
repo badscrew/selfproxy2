@@ -51,21 +51,58 @@ data class ServerProfile(
     val lastUsed: Long? = null,
     
     /**
+     * WireGuard-specific configuration (stored as JSON).
+     * Legacy field - WireGuard not fully implemented.
+     */
+    val wireGuardConfigJson: String? = null,
+    
+    /**
      * VLESS-specific configuration (stored as JSON).
      */
-    val vlessConfigJson: String
+    val vlessConfigJson: String? = null
 ) {
     init {
         require(name.isNotBlank()) { "Profile name cannot be blank" }
         require(hostname.isNotBlank()) { "Hostname cannot be blank" }
         require(port in 1..65535) { "Port must be between 1 and 65535" }
-        require(protocol == Protocol.VLESS) { "Only VLESS protocol is supported" }
+        
+        // Validate protocol-specific configuration
+        when (protocol) {
+            Protocol.WIREGUARD -> require(wireGuardConfigJson != null) { "WireGuard configuration is required" }
+            Protocol.VLESS -> require(vlessConfigJson != null) { "VLESS configuration is required" }
+        }
     }
     
     companion object {
         private val json = Json { 
             ignoreUnknownKeys = true
             encodeDefaults = true
+        }
+        
+        /**
+         * Creates a ServerProfile with WireGuard configuration.
+         * Legacy method - WireGuard not fully implemented.
+         */
+        fun createWireGuardProfile(
+            name: String,
+            hostname: String,
+            port: Int,
+            config: WireGuardConfig,
+            id: Long = 0,
+            createdAt: Long = System.currentTimeMillis(),
+            lastUsed: Long? = null
+        ): ServerProfile {
+            return ServerProfile(
+                id = id,
+                name = name,
+                protocol = Protocol.WIREGUARD,
+                hostname = hostname,
+                port = port,
+                createdAt = createdAt,
+                lastUsed = lastUsed,
+                wireGuardConfigJson = json.encodeToString(config),
+                vlessConfigJson = null
+            )
         }
         
         /**
@@ -88,15 +125,24 @@ data class ServerProfile(
                 port = port,
                 createdAt = createdAt,
                 lastUsed = lastUsed,
+                wireGuardConfigJson = null,
                 vlessConfigJson = json.encodeToString(config)
             )
         }
     }
     
     /**
+     * Parses and returns the WireGuard configuration.
+     * Legacy method - WireGuard not fully implemented.
+     */
+    fun getWireGuardConfig(): WireGuardConfig {
+        return json.decodeFromString(wireGuardConfigJson ?: throw IllegalStateException("WireGuard configuration is null"))
+    }
+    
+    /**
      * Parses and returns the VLESS configuration.
      */
     fun getVlessConfig(): VlessConfig {
-        return json.decodeFromString(vlessConfigJson)
+        return json.decodeFromString(vlessConfigJson ?: throw IllegalStateException("VLESS configuration is null"))
     }
 }
