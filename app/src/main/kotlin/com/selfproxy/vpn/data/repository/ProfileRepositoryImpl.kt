@@ -28,24 +28,41 @@ class ProfileRepositoryImpl(
             // Insert profile
             val id = profileDao.insert(profile)
             
-            // Generate and store credentials for WireGuard profiles
-            if (profile.protocol == Protocol.WIREGUARD) {
-                // Use provided private key (from import) or generate a new one
-                val keyToStore = privateKey ?: com.selfproxy.vpn.domain.util.WireGuardKeyGenerator.generateKeyPair().first
-                
-                // Store the private key in credential store
-                credentialStore.storeWireGuardPrivateKey(id, keyToStore).getOrElse { error ->
-                    // If credential storage fails, delete the profile and return error
-                    profileDao.deleteById(id)
-                    throw ProfileCreationException("Failed to store private key: ${error.message}", error)
-                }
-                
-                // Store preshared key if provided
-                if (presharedKey != null && presharedKey.isNotBlank()) {
-                    credentialStore.storeWireGuardPresharedKey(id, presharedKey).getOrElse { error ->
-                        // If preshared key storage fails, delete the profile and return error
+            // Generate and store credentials based on protocol
+            when (profile.protocol) {
+                Protocol.WIREGUARD -> {
+                    // Use provided private key (from import) or generate a new one
+                    val keyToStore = privateKey ?: com.selfproxy.vpn.domain.util.WireGuardKeyGenerator.generateKeyPair().first
+                    
+                    // Store the private key in credential store
+                    credentialStore.storeWireGuardPrivateKey(id, keyToStore).getOrElse { error ->
+                        // If credential storage fails, delete the profile and return error
                         profileDao.deleteById(id)
-                        throw ProfileCreationException("Failed to store preshared key: ${error.message}", error)
+                        throw ProfileCreationException("Failed to store private key: ${error.message}", error)
+                    }
+                    
+                    // Store preshared key if provided
+                    if (presharedKey != null && presharedKey.isNotBlank()) {
+                        credentialStore.storeWireGuardPresharedKey(id, presharedKey).getOrElse { error ->
+                            // If preshared key storage fails, delete the profile and return error
+                            profileDao.deleteById(id)
+                            throw ProfileCreationException("Failed to store preshared key: ${error.message}", error)
+                        }
+                    }
+                }
+                Protocol.VLESS -> {
+                    // For VLESS, the presharedKey parameter is actually the UUID
+                    val uuid = presharedKey
+                    if (uuid == null || uuid.isBlank()) {
+                        profileDao.deleteById(id)
+                        throw ProfileCreationException("UUID is required for VLESS profiles")
+                    }
+                    
+                    // Store the UUID in credential store
+                    credentialStore.storeVlessUuid(id, uuid).getOrElse { error ->
+                        // If credential storage fails, delete the profile and return error
+                        profileDao.deleteById(id)
+                        throw ProfileCreationException("Failed to store UUID: ${error.message}", error)
                     }
                 }
             }
@@ -105,10 +122,23 @@ class ProfileRepositoryImpl(
                 return Result.failure(ProfileNotFoundException("Profile with ID ${profile.id} not found"))
             }
             
-            // Update preshared key if provided for WireGuard profiles
-            if (profile.protocol == Protocol.WIREGUARD && presharedKey != null && presharedKey.isNotBlank()) {
-                credentialStore.storeWireGuardPresharedKey(profile.id, presharedKey).getOrElse { error ->
-                    return Result.failure(ProfileUpdateException("Failed to update preshared key: ${error.message}", error))
+            // Update credentials based on protocol
+            when (profile.protocol) {
+                Protocol.WIREGUARD -> {
+                    // Update preshared key if provided
+                    if (presharedKey != null && presharedKey.isNotBlank()) {
+                        credentialStore.storeWireGuardPresharedKey(profile.id, presharedKey).getOrElse { error ->
+                            return Result.failure(ProfileUpdateException("Failed to update preshared key: ${error.message}", error))
+                        }
+                    }
+                }
+                Protocol.VLESS -> {
+                    // Update UUID if provided (presharedKey parameter is used for UUID)
+                    if (presharedKey != null && presharedKey.isNotBlank()) {
+                        credentialStore.storeVlessUuid(profile.id, presharedKey).getOrElse { error ->
+                            return Result.failure(ProfileUpdateException("Failed to update UUID: ${error.message}", error))
+                        }
+                    }
                 }
             }
             

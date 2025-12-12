@@ -109,25 +109,126 @@ sudo ./setup-vless-amazon.sh
 
 ### 5. Import into SelfProxy app
 
-**Option A: VLESS URI** (Easiest)
-1. Copy the VLESS URI from terminal output
+**Option A: Scan QR Code** (Easiest!)
+1. Generate QR code on server:
+   ```bash
+   wget https://raw.githubusercontent.com/badscrew/selfproxy2/main/docs/server-setup/show-vless-qr.sh
+   chmod +x show-vless-qr.sh
+   ./show-vless-qr.sh
+   ```
 2. Open SelfProxy app
-3. Tap "Add Profile"
-4. Select "VLESS"
-5. Tap "Import URI"
-6. Paste the URI
+3. Go to Profiles screen
+4. Tap QR scanner icon (📷 top right)
+5. Scan the QR code displayed in terminal
+6. Profile imported automatically!
 
-**Option B: JSON Config**
-1. Transfer `~/vless-client/client-config.json` to your phone
+**Option B: Manual Entry**
+1. Run the QR script to see all values:
+   ```bash
+   ./show-vless-qr.sh
+   ```
 2. Open SelfProxy app
-3. Tap "Add Profile"
-4. Select "VLESS"
-5. Tap "Import JSON"
-6. Select the config file
+3. Tap "Add Profile" → "VLESS"
+4. Fill in the form:
+   - Name: Your choice
+   - Hostname: Your server IP
+   - Port: 443
+   - UUID: From script output
+   - Transport: TCP (or your choice)
+   - Security: Reality (if enabled)
+   - Reality Server Name: From script output
+   - Reality Public Key: From script output
+   - Reality Short ID: From script output
+5. Save and connect!
+
+**Option C: VLESS URI** (For advanced users)
+1. Copy the VLESS URI from terminal output or script
+2. Convert to QR code at https://www.qr-code-generator.com/
+3. Scan with app's QR scanner
 
 ### 6. Connect!
 
 Tap "Connect" and enjoy obfuscated traffic! 🎉
+
+---
+
+## VLESS QR Code Generator
+
+After setting up your VLESS server, you can easily generate a QR code for quick import into the SelfProxy app.
+
+### What It Does
+
+The `show-vless-qr.sh` script:
+- ✅ Automatically extracts all configuration from your Xray server
+- ✅ Builds the complete VLESS URI with all settings (including Reality)
+- ✅ Generates a QR code directly in your terminal
+- ✅ Saves the URI to `~/vless-uri.txt` for later use
+- ✅ Shows all configuration values for manual entry
+
+### Usage
+
+```bash
+# Download the script
+wget https://raw.githubusercontent.com/badscrew/selfproxy2/main/docs/server-setup/show-vless-qr.sh
+chmod +x show-vless-qr.sh
+
+# Run it
+./show-vless-qr.sh
+```
+
+### Output Example
+
+```
+==========================================
+Configuration Values:
+==========================================
+Server IP:   203.0.113.42
+Port:        443
+UUID:        a1b2c3d4-e5f6-7890-abcd-ef1234567890
+Public Key:  SomeBase64EncodedPublicKey
+Short ID:    0123456789abcdef
+SNI:         www.microsoft.com
+
+==========================================
+Complete VLESS URI:
+==========================================
+vless://a1b2c3d4-...@203.0.113.42:443?type=tcp&security=reality&sni=www.microsoft.com&pbk=...&sid=...&fp=chrome#Reality-Server
+
+==========================================
+QR Code (scan with SelfProxy app):
+==========================================
+
+█████████████████████████████████
+█████████████████████████████████
+███ ▄▄▄▄▄ █▀█ █▄▄▀▄▀█ ▄▄▄▄▄ ███
+███ █   █ █▀▀▀█ ▀ █▀█ █   █ ███
+███ █▄▄▄█ █▀ █▀▀█▄ ▀█ █▄▄▄█ ███
+...
+
+==========================================
+Instructions:
+==========================================
+1. Open SelfProxy app on your phone
+2. Go to Profiles screen
+3. Tap the QR scanner icon (📷)
+4. Point camera at the QR code above
+5. Profile will be imported automatically
+6. Tap Connect!
+```
+
+### When to Use
+
+- **After initial setup**: Generate QR code for easy import
+- **Adding new devices**: Quickly share configuration
+- **Lost configuration**: Regenerate anytime from server
+- **Manual entry**: See all values needed for manual form entry
+
+### Requirements
+
+The script automatically installs `qrencode` if not present. Supported on:
+- Ubuntu (apt-get)
+- Amazon Linux (yum)
+- Other Linux distributions with package managers
 
 ---
 

@@ -384,6 +384,141 @@ wscat -c wss://vpn.example.com/ws
 
 ---
 
+## QR Code Generator Issues
+
+### Script Cannot Find Configuration
+
+**Error**: `Xray config not found at /usr/local/etc/xray/config.json`
+
+**Solution**:
+```bash
+# Check if Xray is installed
+xray version
+
+# Check config location
+sudo find / -name "config.json" -path "*/xray/*"
+
+# If in different location, edit script or create symlink
+sudo ln -s /actual/path/config.json /usr/local/etc/xray/config.json
+```
+
+### Cannot Extract Values
+
+**Error**: `Could not extract all required values from config`
+
+**Solution**:
+```bash
+# Manually check config
+sudo cat /usr/local/etc/xray/config.json
+
+# Look for these fields:
+# - "id": "..." (UUID)
+# - "publicKey": "..." (Reality public key)
+# - "shortIds": ["..."] (Reality short ID)
+
+# If missing, your config may be non-standard
+# Extract values manually and create URI
+```
+
+### QR Code Not Displaying
+
+**Error**: `qrencode: command not found`
+
+**Solution**:
+```bash
+# Install qrencode manually
+# Ubuntu/Debian:
+sudo apt-get update
+sudo apt-get install qrencode
+
+# Amazon Linux:
+sudo yum install qrencode
+
+# Test installation
+qrencode --version
+```
+
+### QR Code Too Small
+
+**Symptom**: QR code is too small to scan
+
+**Solution**:
+```bash
+# Generate larger QR code
+qrencode -t ANSIUTF8 -s 10 < ~/vless-uri.txt
+
+# Or save as image
+qrencode -t PNG -o ~/vless-qr.png < ~/vless-uri.txt
+
+# Transfer image to phone and scan with any QR reader
+```
+
+### Cannot Scan QR Code
+
+**Symptom**: App cannot scan the QR code
+
+**Solutions**:
+
+1. **Maximize terminal window** - QR code needs to be large enough
+2. **Increase brightness** - Make sure screen is bright
+3. **Clean camera lens** - Ensure camera can focus
+4. **Use image instead**:
+   ```bash
+   # Generate PNG image
+   qrencode -t PNG -o ~/vless-qr.png < ~/vless-uri.txt
+   
+   # Transfer to phone
+   # Scan with any QR code reader app
+   # Copy the URI and import manually
+   ```
+
+### URI Saved But Not Displayed
+
+**Symptom**: Script says "URI saved" but doesn't show QR code
+
+**Solution**:
+```bash
+# View saved URI
+cat ~/vless-uri.txt
+
+# Generate QR code manually
+qrencode -t ANSIUTF8 < ~/vless-uri.txt
+
+# Or create image
+qrencode -t PNG -o ~/vless-qr.png < ~/vless-uri.txt
+```
+
+### Script Shows Wrong IP
+
+**Symptom**: Script shows internal IP instead of public IP
+
+**Solution**:
+```bash
+# Check your public IP
+curl https://api.ipify.org
+
+# Edit the script to use correct IP
+# Or manually build URI with correct IP
+```
+
+### Reality Settings Not Found
+
+**Symptom**: Script cannot find Reality settings
+
+**Solution**:
+```bash
+# Check if Reality is enabled in config
+sudo cat /usr/local/etc/xray/config.json | grep -A 10 "realitySettings"
+
+# If not using Reality, the script will still work
+# It will create a URI without Reality parameters
+
+# For TLS-only setup, manually create URI:
+# vless://UUID@IP:PORT?type=tcp&security=tls&sni=DOMAIN#Name
+```
+
+---
+
 ## Client-Side Issues
 
 ### Invalid Configuration
