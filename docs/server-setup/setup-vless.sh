@@ -264,15 +264,29 @@ setup_tls() {
 generate_reality_keys() {
     print_header "Generating Reality Keys"
     
-    # Generate Reality key pair
+    # Generate Reality key pair using xray x25519
+    # Output format: "PrivateKey: <key>" (no space after colon in older versions)
     REALITY_KEYS=$(xray x25519)
-    REALITY_PRIVATE_KEY=$(echo "$REALITY_KEYS" | grep "Private key:" | awk '{print $3}')
-    REALITY_PUBLIC_KEY=$(echo "$REALITY_KEYS" | grep "Public key:" | awk '{print $3}')
     
-    # Generate short ID
+    # Try both formats: "PrivateKey:" and "Private key:"
+    REALITY_PRIVATE_KEY=$(echo "$REALITY_KEYS" | grep -i "private" | awk '{print $2}')
+    REALITY_PUBLIC_KEY=$(echo "$REALITY_KEYS" | grep -i "password" | awk '{print $2}')
+    
+    # Validate keys were generated
+    if [[ -z "$REALITY_PRIVATE_KEY" ]] || [[ -z "$REALITY_PUBLIC_KEY" ]]; then
+        print_error "Failed to generate Reality keys"
+        print_info "xray x25519 output:"
+        echo "$REALITY_KEYS"
+        exit 1
+    fi
+    
+    # Generate short ID (8 bytes = 16 hex characters)
     REALITY_SHORT_ID=$(openssl rand -hex 8)
     
     print_success "Reality keys generated"
+    print_info "Private Key: ${REALITY_PRIVATE_KEY:0:20}... (hidden)"
+    print_info "Public Key: ${REALITY_PUBLIC_KEY:0:20}..."
+    print_info "Short ID: $REALITY_SHORT_ID"
 }
 
 configure_xray() {
@@ -368,6 +382,16 @@ EOF
 }
 
 create_reality_config() {
+    # Validate Reality keys are set
+    if [[ -z "$REALITY_PRIVATE_KEY" ]] || [[ -z "$REALITY_PUBLIC_KEY" ]] || [[ -z "$REALITY_SHORT_ID" ]]; then
+        print_error "Reality keys not generated. This is a bug in the script."
+        print_info "Please report this issue with the following information:"
+        print_info "  REALITY_PRIVATE_KEY: ${REALITY_PRIVATE_KEY:-NOT SET}"
+        print_info "  REALITY_PUBLIC_KEY: ${REALITY_PUBLIC_KEY:-NOT SET}"
+        print_info "  REALITY_SHORT_ID: ${REALITY_SHORT_ID:-NOT SET}"
+        exit 1
+    fi
+    
     # Create configuration with Reality protocol
     cat > "$XRAY_CONFIG_FILE" <<EOF
 {
@@ -438,6 +462,17 @@ configure_firewall() {
 start_xray() {
     print_header "Starting Xray Service"
     
+    # Test configuration before starting
+    print_info "Testing Xray configuration..."
+    if xray -test -config "$XRAY_CONFIG_FILE"; then
+        print_success "Configuration is valid"
+    else
+        print_error "Configuration test failed"
+        print_info "Configuration file: $XRAY_CONFIG_FILE"
+        print_info "Please check the configuration and try again"
+        exit 1
+    fi
+    
     # Enable and start Xray
     systemctl enable xray
     systemctl restart xray
@@ -452,6 +487,10 @@ start_xray() {
         print_error "Failed to start Xray service"
         print_info "Checking logs..."
         journalctl -u xray -n 20 --no-pager
+        print_info ""
+        print_info "Configuration file: $XRAY_CONFIG_FILE"
+        print_info "You can test the configuration manually with:"
+        print_info "  sudo xray -test -config $XRAY_CONFIG_FILE"
         exit 1
     fi
 }
@@ -647,8 +686,18 @@ print_summary() {
     echo "  - Restart: sudo systemctl restart xray"
     echo "  - Stop: sudo systemctl stop xray"
     echo
-    print_warning "Important: Keep your UUID secure!"
+    print_warning "Important: Keep your credentials secure!"
     echo "  - UUID: $UUID"
+    if [[ "$USE_REALITY" == "true" ]]; then
+        echo "  - Private Key: $REALITY_PRIVATE_KEY (keep secret!)"
+        echo "  - Public Key: $REALITY_PUBLIC_KEY (share with clients)"
+        echo "  - Short ID: $REALITY_SHORT_ID"
+    fi
+    echo
+    print_info "Troubleshooting:"
+    echo "  - Test config: sudo xray -test -config $XRAY_CONFIG_FILE"
+    echo "  - View errors: sudo journalctl -u xray -xe"
+    echo "  - Check port: sudo netstat -tlnp | grep $XRAY_PORT"
     echo
 }
 
