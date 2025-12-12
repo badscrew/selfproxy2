@@ -676,7 +676,8 @@ class VlessAdapter(
             Log.d(TAG, "Performing connection test...")
             
             // Get test URL from settings
-            val testUrl = settingsRepository.getConnectionTestUrl().first()
+            val settings = settingsRepository.observeSettings().first()
+            val testUrl = settings.connectionTestUrl
             Log.d(TAG, "Testing connection to: $testUrl")
             
             // Make HTTP request through the tunnel
@@ -686,7 +687,7 @@ class VlessAdapter(
                 .build()
             
             val request = okhttp3.Request.Builder()
-                .url(testUrl)
+                .url(testUrl as String)  // Cast to String to resolve ambiguity
                 .build()
             
             val response = client.newCall(request).execute()

@@ -257,8 +257,9 @@ class TunnelVpnService : VpnService() {
                 
                 // 3. Get profile from repository
                 // Since we can't easily inject ProfileRepository into a Service,
-                // we retrieve it from Koin directly
-                val profileRepository = org.koin.core.component.KoinComponent().getKoin().get<com.selfproxy.vpn.domain.repository.ProfileRepository>()
+                // we retrieve it from Koin directly using the global context
+                val koin = org.koin.core.context.GlobalContext.get()
+                val profileRepository = koin.get<com.selfproxy.vpn.domain.repository.ProfileRepository>()
                 val profile = profileRepository.getProfile(profileId)
                 
                 if (profile == null) {
